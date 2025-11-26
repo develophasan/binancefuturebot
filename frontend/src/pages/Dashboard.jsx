@@ -186,13 +186,13 @@ const Dashboard = () => {
                     <div>
                       <p className="font-semibold text-white">{gainer.symbol}</p>
                       <p className="text-xs text-gray-400">
-                        ${gainer.price?.toFixed(2) || '0.00'}
+                        ${formatPrice(gainer.price || 0)}
                       </p>
                     </div>
                   </div>
                   <div className="text-right">
                     <p className="text-emerald-400 font-bold">
-                      +{gainer.price_change_percent?.toFixed(2)}%
+                      +{formatPercent(gainer.price_change_percent || 0)}%
                     </p>
                     <p className="text-xs text-gray-500">
                       Vol: ${(gainer.volume_24h / 1000000).toFixed(1)}M
