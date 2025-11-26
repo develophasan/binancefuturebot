@@ -13,6 +13,12 @@ import asyncio
 
 logger = logging.getLogger(__name__)
 
+# Top 10 popular coins - professional list
+POPULAR_COINS = [
+    "BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT", "XRPUSDT",
+    "ADAUSDT", "DOGEUSDT", "MATICUSDT", "DOTUSDT", "AVAXUSDT"
+]
+
 
 class TradeEngine:
     def __init__(self, db: AsyncIOMotorDatabase):
@@ -57,7 +63,7 @@ class TradeEngine:
                     await asyncio.sleep(300)  # 5 minutes
                     continue
                 
-                # Get dynamic symbol list
+                # Get dynamic symbol list (Popular + Top Gainers)
                 symbol_list = await self._get_symbol_list(settings)
                 
                 # Process each symbol
@@ -272,23 +278,31 @@ class TradeEngine:
             logger.error(f"Error executing long for {symbol}: {e}", exc_info=True)
     
     async def _get_symbol_list(self, settings: UserSettings) -> List[str]:
-        """Get dynamic symbol list (whitelist + top gainers) - AGGRESSIVE for testnet"""
-        symbols = list(settings.symbol_whitelist)
+        """Get combined symbol list: Popular coins + Top gainers (no duplicates)"""
         
-        # Add BEST top gainers only (quality over quantity)
+        # Start with popular coins (from settings or default)
+        symbol_list = list(settings.symbol_whitelist) if settings.symbol_whitelist else list(POPULAR_COINS)
+        
+        logger.info(f"📊 Base popular coins: {len(symbol_list)} symbols")
+        
+        # Add top gainers (quality over quantity)
         try:
-            top_gainers = await self.binance.get_top_gainers(limit=5)  # Only top 5 strongest
+            top_gainers = await self.binance.get_top_gainers(limit=10)  # Top 10 gainers
+            added_count = 0
             for gainer in top_gainers:
                 symbol = gainer['symbol']
-                # Only add if volume is significant (>5M USDT)
-                if symbol not in symbols and gainer['volume_24h'] > 5000000:
-                    symbols.append(symbol)
-                    logger.info(f"🎯 Tracking strong gainer: {symbol} (+{gainer['price_change_percent']:.2f}%, Vol: ${gainer['volume_24h']/1000000:.1f}M)")
+                # Only add if not already in list and volume is significant (>3M USDT)
+                if symbol not in symbol_list and gainer['volume_24h'] > 3000000:
+                    symbol_list.append(symbol)
+                    added_count += 1
+                    logger.info(f"🚀 Added top gainer: {symbol} (+{gainer['price_change_percent']:.2f}%, Vol: ${gainer['volume_24h']/1000000:.1f}M)")
+            
+            logger.info(f"✅ Added {added_count} top gainers")
         except Exception as e:
             logger.error(f"Error fetching top gainers: {e}")
         
-        logger.info(f"📊 Analyzing {len(symbols)} HIGH-QUALITY symbols this cycle")
-        return symbols
+        logger.info(f"📈 Total symbols to analyze this cycle: {len(symbol_list)}")
+        return symbol_list
     
     async def _get_settings(self) -> UserSettings:
         """Get user settings from database"""
