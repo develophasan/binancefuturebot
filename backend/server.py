@@ -10,7 +10,8 @@ from datetime import datetime
 
 from models import (
     UserSettings, UserSettingsUpdate, Position, Trade,
-    AIDecisionLog, BotStatus, TopGainer
+    AIDecisionLog, BotStatus, TopGainer, ManualTradeRequest,
+    TradeSide, TradeStatus
 )
 from services.trade_engine import TradeEngine
 from services.binance_service import BinanceService
