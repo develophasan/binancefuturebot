@@ -217,6 +217,14 @@ async def get_top_gainers(limit: int = 10):
     return gainers
 
 
+@api_router.get("/market/prices")
+async def get_current_prices():
+    """Get current prices for all tracked symbols"""
+    if not position_monitor:
+        return {}
+    return position_monitor.current_prices
+
+
 # Include router
 app.include_router(api_router)
 
