@@ -118,7 +118,7 @@ class BinanceService:
         return signature
     
     async def get_account_balance(self) -> Dict[str, Any]:
-        """Get Spot account balance from Binance Testnet via proxy"""
+        """Get FUTURES account balance from Binance via proxy"""
         if not self.has_credentials:
             logger.warning("No API credentials, returning simulated balance")
             return {
@@ -127,7 +127,7 @@ class BinanceService:
                 "used_margin_usdt": 500.0
             }
         
-        url = f"{self.api_base_url}/v3/account"
+        url = f"{self.api_base_url}/fapi/v2/account"
         timestamp = int(datetime.now(timezone.utc).timestamp() * 1000)
         
         params = {
@@ -155,30 +155,27 @@ class BinanceService:
                     if response.status == 200:
                         data = await response.json()
                         
-                        # Get USDT balance
-                        usdt_balance = 0.0
-                        for balance in data.get('balances', []):
-                            if balance['asset'] == 'USDT':
-                                usdt_balance = float(balance['free']) + float(balance['locked'])
-                                break
+                        # Futures account structure
+                        total_wallet = float(data.get('totalWalletBalance', 0))
+                        available = float(data.get('availableBalance', 0))
                         
-                        logger.info(f"✅ Successfully fetched REAL account balance: {usdt_balance} USDT via proxy")
+                        logger.info(f"✅ Fetched FUTURES balance: {total_wallet} USDT")
                         
                         return {
-                            "total_equity_usdt": usdt_balance,
-                            "available_balance_usdt": usdt_balance,
-                            "used_margin_usdt": 0.0
+                            "total_equity_usdt": total_wallet,
+                            "available_balance_usdt": available,
+                            "used_margin_usdt": total_wallet - available
                         }
                     else:
                         error_text = await response.text()
-                        logger.error(f"❌ Error fetching account balance: {response.status} - {error_text[:100]}")
+                        logger.error(f"❌ Futures account error {response.status}: {error_text[:100]}")
                         return {
                             "total_equity_usdt": 10000.0,
                             "available_balance_usdt": 9500.0,
                             "used_margin_usdt": 500.0
                         }
         except Exception as e:
-            logger.error(f"❌ Error fetching account balance: {e}")
+            logger.error(f"❌ Error fetching FUTURES balance: {e}")
             return {
                 "total_equity_usdt": 10000.0,
                 "available_balance_usdt": 9500.0,
