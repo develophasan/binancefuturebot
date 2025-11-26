@@ -72,8 +72,8 @@ class TradeEngine:
                 # Update last signal time
                 self.last_signal_time = datetime.now(timezone.utc)
                 
-                # Wait before next cycle (5 minutes)
-                await asyncio.sleep(300)
+                # Wait before next cycle (20 seconds for aggressive testing)
+                await asyncio.sleep(20)
                 
             except Exception as e:
                 logger.error(f"Error in main loop: {e}", exc_info=True)
