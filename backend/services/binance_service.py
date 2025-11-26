@@ -33,26 +33,33 @@ class BinanceService:
         logger.info(f"Binance service initialized with public data API")
     
     async def get_candles(self, symbol: str, interval: str = "5m", limit: int = 100) -> List[Dict[str, Any]]:
-        """Fetch OHLCV candles"""
-        if self.mock_mode:
-            return self._mock_candles(symbol, limit)
-        
+        """Fetch OHLCV candles from public API"""
         try:
-            # CCXT uses timeframe format
-            ohlcv = self.client.fetch_ohlcv(symbol, timeframe=interval, limit=limit)
+            url = f"{self.public_base_url}/klines"
+            params = {
+                "symbol": symbol,
+                "interval": interval,
+                "limit": limit
+            }
             
-            candles = []
-            for k in ohlcv:
-                candles.append({
-                    "timestamp": k[0],
-                    "open": float(k[1]),
-                    "high": float(k[2]),
-                    "low": float(k[3]),
-                    "close": float(k[4]),
-                    "volume": float(k[5])
-                })
-            
-            return candles
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url, params=params) as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        candles = []
+                        for k in data:
+                            candles.append({
+                                "timestamp": k[0],
+                                "open": float(k[1]),
+                                "high": float(k[2]),
+                                "low": float(k[3]),
+                                "close": float(k[4]),
+                                "volume": float(k[5])
+                            })
+                        return candles
+                    else:
+                        logger.error(f"Error fetching candles: HTTP {response.status}")
+                        return self._mock_candles(symbol, limit)
         except Exception as e:
             logger.error(f"Error fetching candles for {symbol}: {e}")
             return self._mock_candles(symbol, limit)
