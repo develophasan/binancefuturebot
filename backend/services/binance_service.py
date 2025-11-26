@@ -33,36 +33,46 @@ class BinanceService:
         logger.info(f"Binance service initialized with public data API")
     
     async def get_candles(self, symbol: str, interval: str = "5m", limit: int = 100) -> List[Dict[str, Any]]:
-        """Fetch OHLCV candles from public API"""
-        try:
-            url = f"{self.public_base_url}/klines"
-            params = {
-                "symbol": symbol,
-                "interval": interval,
-                "limit": limit
-            }
-            
-            async with aiohttp.ClientSession() as session:
-                async with session.get(url, params=params) as response:
-                    if response.status == 200:
-                        data = await response.json()
-                        candles = []
-                        for k in data:
-                            candles.append({
-                                "timestamp": k[0],
-                                "open": float(k[1]),
-                                "high": float(k[2]),
-                                "low": float(k[3]),
-                                "close": float(k[4]),
-                                "volume": float(k[5])
-                            })
-                        return candles
-                    else:
-                        logger.error(f"Error fetching candles: HTTP {response.status}")
-                        return self._mock_candles(symbol, limit)
-        except Exception as e:
-            logger.error(f"Error fetching candles for {symbol}: {e}")
-            return self._mock_candles(symbol, limit)
+        """Fetch OHLCV candles - using alternative API sources"""
+        # Try multiple data sources
+        sources = [
+            f"https://api.binance.com/api/v3/klines",
+            f"https://data.binance.vision/api/v3/klines",
+            f"https://api1.binance.com/api/v3/klines",
+            f"https://api2.binance.com/api/v3/klines"
+        ]
+        
+        params = {
+            "symbol": symbol,
+            "interval": interval,
+            "limit": limit
+        }
+        
+        for url in sources:
+            try:
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(url, params=params, timeout=aiohttp.ClientTimeout(total=5)) as response:
+                        if response.status == 200:
+                            data = await response.json()
+                            candles = []
+                            for k in data:
+                                candles.append({
+                                    "timestamp": k[0],
+                                    "open": float(k[1]),
+                                    "high": float(k[2]),
+                                    "low": float(k[3]),
+                                    "close": float(k[4]),
+                                    "volume": float(k[5])
+                                })
+                            logger.info(f"Successfully fetched {len(candles)} candles for {symbol}")
+                            return candles
+            except Exception as e:
+                logger.warning(f"Failed to fetch from {url}: {e}")
+                continue
+        
+        # If all sources fail, use mock data
+        logger.warning(f"All data sources failed for {symbol}, using mock data")
+        return self._mock_candles(symbol, limit)
     
     async def get_account_balance(self) -> Dict[str, Any]:
         """Get futures account balance (simulated for testnet)"""
