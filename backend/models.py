@@ -45,9 +45,9 @@ class UserSettings(BaseModel):
     max_leverage: int = 5
     min_leverage: int = 2
     
-    # Risk parameters (optimized for profitability)
-    target_profit_percent: float = 1.5  # 1.5% TP
-    stop_loss_percent: float = 0.4  # 0.4% SL (R/R = 3.75:1)
+    # Risk parameters (aggressive for crypto futures)
+    target_profit_percent: float = 4.0  # 4% TP (agresif)
+    stop_loss_percent: float = 2.0  # 2% SL (R/R = 2:1, agresif)
     max_risk_per_trade_percent: float = 0.02  # 2% of equity per trade
     risk_profile: RiskProfile = RiskProfile.MODERATE
     
