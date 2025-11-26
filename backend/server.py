@@ -196,6 +196,111 @@ async def get_position(position_id: str):
     
     return Position(**position)
 
+@api_router.post("/positions/manual")
+async def open_manual_position(request: ManualTradeRequest):
+    """Open a manual position with custom parameters"""
+    try:
+        # Get current price
+        ticker = await binance_service.get_ticker(request.symbol)
+        if not ticker:
+            raise HTTPException(status_code=400, detail=f"Failed to get price for {request.symbol}")
+        
+        current_price = float(ticker['price'])
+        
+        # Calculate TP and SL prices
+        raw_tp_price = current_price * (1 + request.target_profit_percent / 100)
+        raw_sl_price = current_price * (1 - request.stop_loss_percent / 100)
+        
+        # Round prices based on magnitude
+        if current_price >= 1000:
+            tp_price = round(raw_tp_price, 1)
+            sl_price = round(raw_sl_price, 1)
+        elif current_price >= 100:
+            tp_price = round(raw_tp_price, 2)
+            sl_price = round(raw_sl_price, 2)
+        elif current_price >= 1:
+            tp_price = round(raw_tp_price, 3)
+            sl_price = round(raw_sl_price, 3)
+        else:
+            tp_price = round(raw_tp_price, 6)
+            sl_price = round(raw_sl_price, 6)
+        
+        # Calculate quantity
+        raw_quantity = (request.position_size_usdt * request.leverage) / current_price
+        
+        if current_price > 1000:
+            quantity = round(raw_quantity, 3)
+        elif current_price > 100:
+            quantity = round(raw_quantity, 2)
+        elif current_price > 1:
+            quantity = round(raw_quantity, 1)
+        else:
+            quantity = round(raw_quantity, 0)
+        
+        if quantity <= 0:
+            quantity = 0.001 if current_price > 1000 else 1
+        
+        # Set leverage
+        await binance_service.set_leverage(request.symbol, request.leverage)
+        
+        # Place market order
+        entry_order = await binance_service.place_market_order(
+            symbol=request.symbol,
+            side="BUY",
+            quantity=quantity
+        )
+        
+        if not entry_order:
+            raise HTTPException(status_code=500, detail="Failed to place entry order")
+        
+        # Place TP order
+        tp_order = await binance_service.place_take_profit_market_order(
+            symbol=request.symbol,
+            side="SELL",
+            quantity=quantity,
+            stop_price=tp_price
+        )
+        
+        # Place SL order
+        sl_order = await binance_service.place_stop_market_order(
+            symbol=request.symbol,
+            side="SELL",
+            quantity=quantity,
+            stop_price=sl_price
+        )
+        
+        # Save to database
+        position = Position(
+            symbol=request.symbol,
+            side=TradeSide.LONG,
+            status=TradeStatus.OPEN,
+            entry_price=current_price,
+            position_size_usdt=request.position_size_usdt,
+            leverage=request.leverage,
+            quantity=quantity,
+            take_profit_price=tp_price,
+            stop_loss_price=sl_price,
+            entry_order_id=str(entry_order.get('orderId', '')),
+            tp_order_id=str(tp_order.get('orderId', '')) if tp_order else None,
+            sl_order_id=str(sl_order.get('orderId', '')) if sl_order else None
+        )
+        
+        position_dict = position.model_dump()
+        position_dict['opened_at'] = position_dict['opened_at'].isoformat()
+        
+        await db.positions.insert_one(position_dict)
+        
+        logger.info(f"Manual position opened: {request.symbol} at {current_price}, TP: {tp_price}, SL: {sl_price}")
+        
+        return {
+            "success": True,
+            "message": "Pozisyon başarıyla açıldı",
+            "position": position_dict
+        }
+        
+    except Exception as e:
+        logger.error(f"Error opening manual position: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
 
 # ===== AI DECISIONS =====
 
