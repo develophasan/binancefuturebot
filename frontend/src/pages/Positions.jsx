@@ -74,24 +74,25 @@ const Positions = () => {
                 <span className="px-2 py-0.5 rounded text-xs font-medium bg-cyan-500/20 text-cyan-400">
                   {position.leverage}x
                 </span>
+                {isOpen && (
+                  <span className="px-2 py-0.5 rounded text-xs font-medium bg-orange-500/20 text-orange-400 animate-pulse">
+                    LIVE
+                  </span>
+                )}
               </div>
             </div>
-            {!isOpen && (
-              <div className="text-right">
-                <p className={`text-xl font-bold ${
-                  (position.realized_pnl_usdt || 0) >= 0
-                    ? "text-emerald-400"
-                    : "text-red-400"
-                }`}>
-                  ${(position.realized_pnl_usdt || 0).toFixed(2)}
-                </p>
-                <p className={`text-xs ${
-                  pnlPercent >= 0 ? "text-emerald-400" : "text-red-400"
-                }`}>
-                  {pnlPercent >= 0 ? '+' : ''}{pnlPercent.toFixed(2)}%
-                </p>
-              </div>
-            )}
+            <div className="text-right">
+              <p className={`text-xl font-bold ${
+                pnl >= 0 ? "text-emerald-400" : "text-red-400"
+              }`}>
+                {pnl >= 0 ? '+' : ''}${pnl.toFixed(2)}
+              </p>
+              <p className={`text-xs ${
+                pnlPercent >= 0 ? "text-emerald-400" : "text-red-400"
+              }`}>
+                {pnlPercent >= 0 ? '+' : ''}{pnlPercent.toFixed(2)}%
+              </p>
+            </div>
           </div>
           
           <div className="grid grid-cols-2 gap-3 mb-3">
