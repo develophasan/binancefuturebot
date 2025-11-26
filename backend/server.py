@@ -59,6 +59,8 @@ async def startup_event():
 async def shutdown_event():
     if trade_engine:
         await trade_engine.stop()
+    if position_monitor:
+        await position_monitor.stop()
     client.close()
     logger.info("Application shutdown")
 
