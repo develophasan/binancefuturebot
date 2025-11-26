@@ -211,12 +211,17 @@ class BinanceService:
             return {"open_interest": 0.0, "change_24h_percent": 0.0}
     
     async def get_top_gainers(self, limit: int = 10) -> List[Dict[str, Any]]:
-        """Get top gaining symbols in 24h from Binance Testnet"""
+        """Get top gaining symbols in 24h from Binance Testnet via proxy"""
         url = f"{self.spot_base_url}/v3/ticker/24hr"
+        proxy = self._get_next_proxy()
         
         try:
             async with aiohttp.ClientSession() as session:
-                async with session.get(url, timeout=aiohttp.ClientTimeout(total=15)) as response:
+                async with session.get(
+                    url, 
+                    proxy=proxy,
+                    timeout=aiohttp.ClientTimeout(total=20)
+                ) as response:
                     if response.status == 200:
                         tickers = await response.json()
                         
@@ -230,7 +235,7 @@ class BinanceService:
                                     volume = float(ticker.get('quoteVolume', 0))
                                     price = float(ticker.get('lastPrice', 0))
                                     
-                                    if price_change > 0 and volume > 100000:  # Lower volume filter for testnet
+                                    if price_change > 0 and volume > 100000:
                                         usdt_pairs.append({
                                             "symbol": symbol,
                                             "price_change_percent": price_change,
@@ -243,11 +248,11 @@ class BinanceService:
                         # Sort by price change descending
                         usdt_pairs.sort(key=lambda x: x['price_change_percent'], reverse=True)
                         
-                        logger.info(f"✅ Successfully fetched {len(usdt_pairs)} REAL top gainers from Binance Testnet")
+                        logger.info(f"✅ Successfully fetched {len(usdt_pairs)} REAL top gainers via proxy")
                         return usdt_pairs[:limit]
                     else:
                         error_text = await response.text()
-                        logger.error(f"❌ Error fetching top gainers: {response.status} - {error_text}")
+                        logger.error(f"❌ Error fetching top gainers: {response.status} - {error_text[:100]}")
                         return self._mock_top_gainers(limit)
         except Exception as e:
             logger.error(f"❌ Error fetching top gainers: {e}")
