@@ -147,7 +147,7 @@ async def update_settings(update: UserSettingsUpdate):
 
 # ===== POSITIONS =====
 
-@api_router.get("/positions", response_model=List[Position])
+@api_router.get("/positions")
 async def get_positions(status: str = "OPEN"):
     """Get positions by status with real-time PnL"""
     query = {"user_id": "default_user"}
@@ -160,15 +160,21 @@ async def get_positions(status: str = "OPEN"):
     for pos in positions:
         if isinstance(pos.get('opened_at'), str):
             pos['opened_at'] = datetime.fromisoformat(pos['opened_at'])
-        if pos.get('closed_at') and isinstance(pos['closed_at'], str):
+        if pos.get('closed_at') and isinstance(pos['closed_at'), str):
             pos['closed_at'] = datetime.fromisoformat(pos['closed_at'])
         
         # Add real-time PnL for open positions
-        if status == "OPEN" and position_monitor:
-            pnl_data = await position_monitor.get_position_pnl(pos)
-            pos['current_price'] = pnl_data['current_price']
-            pos['unrealized_pnl_usdt'] = pnl_data['unrealized_pnl']
-            pos['price_change_percent'] = pnl_data['price_change_percent']
+        if status == "OPEN":
+            if position_monitor:
+                pnl_data = await position_monitor.get_position_pnl(pos)
+                pos['current_price'] = pnl_data['current_price']
+                pos['unrealized_pnl_usdt'] = pnl_data['unrealized_pnl']
+                pos['price_change_percent'] = pnl_data['price_change_percent']
+            else:
+                # Fallback if monitor not available
+                pos['current_price'] = pos['entry_price']
+                pos['unrealized_pnl_usdt'] = 0.0
+                pos['price_change_percent'] = 0.0
     
     return positions
 
