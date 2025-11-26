@@ -45,11 +45,14 @@ logger = logging.getLogger(__name__)
 
 @app.on_event("startup")
 async def startup_event():
-    global trade_engine
+    global trade_engine, position_monitor
     trade_engine = TradeEngine(db)
-    # Auto-start trade engine
+    position_monitor = PositionMonitor(db)
+    
+    # Auto-start trade engine and position monitor
     await trade_engine.start()
-    logger.info("Application started, trade engine initialized")
+    await position_monitor.start()
+    logger.info("Application started, trade engine and position monitor initialized")
 
 
 @app.on_event("shutdown")
