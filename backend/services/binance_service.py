@@ -51,14 +51,11 @@ class BinanceService:
             return self._mock_candles(symbol, limit)
         
         try:
-            klines = self.client.futures_klines(
-                symbol=symbol,
-                interval=interval,
-                limit=limit
-            )
+            # CCXT uses timeframe format
+            ohlcv = self.client.fetch_ohlcv(symbol, timeframe=interval, limit=limit)
             
             candles = []
-            for k in klines:
+            for k in ohlcv:
                 candles.append({
                     "timestamp": k[0],
                     "open": float(k[1]),
@@ -69,9 +66,6 @@ class BinanceService:
                 })
             
             return candles
-        except BinanceAPIException as e:
-            logger.error(f"Binance API error fetching candles for {symbol}: {e}")
-            return self._mock_candles(symbol, limit)
         except Exception as e:
             logger.error(f"Error fetching candles for {symbol}: {e}")
             return self._mock_candles(symbol, limit)
