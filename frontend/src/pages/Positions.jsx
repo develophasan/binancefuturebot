@@ -15,15 +15,19 @@ const Positions = () => {
   const fetchPositions = async () => {
     try {
       const [openRes, closedRes] = await Promise.all([
-        axios.get(`${API}/positions?status=OPEN`),
+        axios.get(`${API}/positions?status=OPEN&_t=${Date.now()}`), // Cache buster
         axios.get(`${API}/positions?status=CLOSED`)
       ]);
+      
+      console.log('💰 PnL Güncellemesi:', openRes.data.map(p => 
+        `${p.symbol}: $${p.unrealized_pnl_usdt?.toFixed(2) || '0.00'}`
+      ));
       
       setOpenPositions(openRes.data);
       setClosedPositions(closedRes.data);
     } catch (error) {
       console.error("Error fetching positions:", error);
-      toast.error("Pozisyonlar yüklenirken hata oluştu");
+      // toast.error("Pozisyonlar yüklenirken hata oluştu"); // Çok sık toast çıkmaması için kaldırdım
     } finally {
       setLoading(false);
     }
