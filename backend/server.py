@@ -14,6 +14,7 @@ from models import (
 )
 from services.trade_engine import TradeEngine
 from services.binance_service import BinanceService
+from services.position_monitor import PositionMonitor
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
