@@ -67,8 +67,8 @@ class BinanceService:
         return proxy
     
     async def get_candles(self, symbol: str, interval: str = "5m", limit: int = 100) -> List[Dict[str, Any]]:
-        """Fetch OHLCV candles from Binance Testnet via proxy"""
-        url = f"{self.spot_base_url}/v3/klines"
+        """Fetch OHLCV candles from Binance FUTURES via proxy"""
+        url = f"{self.futures_base_url}/fapi/v1/klines"
         params = {
             "symbol": symbol,
             "interval": interval,
@@ -97,14 +97,14 @@ class BinanceService:
                                 "close": float(k[4]),
                                 "volume": float(k[5])
                             })
-                        logger.info(f"✅ Successfully fetched {len(candles)} REAL candles for {symbol} via proxy")
+                        logger.info(f"✅ Fetched {len(candles)} FUTURES candles for {symbol}")
                         return candles
                     else:
                         error_text = await response.text()
-                        logger.error(f"❌ Binance error {response.status}: {error_text[:100]}")
+                        logger.error(f"❌ Futures API error {response.status}: {error_text[:100]}")
                         return self._mock_candles(symbol, limit)
         except Exception as e:
-            logger.error(f"❌ Error fetching candles for {symbol}: {e}")
+            logger.error(f"❌ Error fetching FUTURES candles for {symbol}: {e}")
             return self._mock_candles(symbol, limit)
     
     def _sign_request(self, params: Dict[str, Any]) -> str:
