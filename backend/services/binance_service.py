@@ -1,8 +1,7 @@
 import os
 import asyncio
 from typing import List, Dict, Any, Optional
-from binance.client import Client
-from binance.exceptions import BinanceAPIException
+import ccxt
 import logging
 from datetime import datetime, timezone
 
@@ -17,11 +16,9 @@ class BinanceService:
             # Testnet credentials
             api_key = os.getenv("BINANCE_TESTNET_API_KEY", "")
             api_secret = os.getenv("BINANCE_TESTNET_SECRET_KEY", "")
-            self.base_url = "https://testnet.binancefuture.com"
         else:
             api_key = os.getenv("BINANCE_API_KEY", "")
             api_secret = os.getenv("BINANCE_SECRET_KEY", "")
-            self.base_url = "https://fapi.binance.com"
         
         if not api_key or not api_secret:
             logger.warning("Binance API keys not configured. Using mock mode.")
@@ -29,9 +26,20 @@ class BinanceService:
             self.mock_mode = True
         else:
             try:
-                self.client = Client(api_key, api_secret, testnet=testnet)
+                self.client = ccxt.binance({
+                    'apiKey': api_key,
+                    'secret': api_secret,
+                    'enableRateLimit': True,
+                    'options': {
+                        'defaultType': 'future',
+                    }
+                })
+                
+                if testnet:
+                    self.client.set_sandbox_mode(True)
+                
                 self.mock_mode = False
-                logger.info(f"Binance client initialized ({'testnet' if testnet else 'mainnet'})")
+                logger.info(f"Binance CCXT client initialized ({'testnet' if testnet else 'mainnet'})")
             except Exception as e:
                 logger.error(f"Failed to initialize Binance client: {e}")
                 self.client = None
