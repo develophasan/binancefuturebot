@@ -147,30 +147,16 @@ class BinanceService:
         side: str,
         quantity: float
     ) -> Optional[Dict[str, Any]]:
-        """Place market order"""
-        if self.mock_mode:
-            return {
-                "orderId": "mock_order_123",
-                "symbol": symbol,
-                "status": "FILLED",
-                "executedQty": quantity
-            }
-        
-        try:
-            # Convert symbol format if needed (BTCUSDT -> BTC/USDT)
-            if '/' not in symbol:
-                symbol = f"{symbol[:-4]}/{symbol[-4:]}"
-            
-            order = self.client.create_order(
-                symbol=symbol,
-                type='market',
-                side=side.lower(),
-                amount=quantity
-            )
-            return order
-        except Exception as e:
-            logger.error(f"Error placing market order: {e}")
-            return None
+        """Place market order (simulated)"""
+        # Return simulated order for testnet
+        logger.info(f"SIMULATED ORDER: {side} {quantity} {symbol}")
+        return {
+            "orderId": f"sim_order_{int(datetime.now(timezone.utc).timestamp())}",
+            "symbol": symbol,
+            "status": "FILLED",
+            "executedQty": quantity,
+            "side": side
+        }
     
     async def set_leverage(self, symbol: str, leverage: int) -> bool:
         """Set leverage for symbol"""
