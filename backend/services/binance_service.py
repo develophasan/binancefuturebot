@@ -159,20 +159,9 @@ class BinanceService:
         }
     
     async def set_leverage(self, symbol: str, leverage: int) -> bool:
-        """Set leverage for symbol"""
-        if self.mock_mode:
-            return True
-        
-        try:
-            # Convert symbol format if needed
-            if '/' not in symbol:
-                symbol = f"{symbol[:-4]}/{symbol[-4:]}"
-            
-            self.client.set_leverage(leverage, symbol)
-            return True
-        except Exception as e:
-            logger.error(f"Error setting leverage: {e}")
-            return False
+        """Set leverage for symbol (simulated)"""
+        logger.info(f"SIMULATED LEVERAGE: {symbol} -> {leverage}x")
+        return True
     
     async def place_stop_market_order(
         self,
@@ -181,26 +170,13 @@ class BinanceService:
         quantity: float,
         stop_price: float
     ) -> Optional[Dict[str, Any]]:
-        """Place stop-loss order"""
-        if self.mock_mode:
-            return {"orderId": "mock_sl_order_123"}
-        
-        try:
-            # Convert symbol format if needed
-            if '/' not in symbol:
-                symbol = f"{symbol[:-4]}/{symbol[-4:]}"
-            
-            order = self.client.create_order(
-                symbol=symbol,
-                type='stop_market',
-                side=side.lower(),
-                amount=quantity,
-                params={'stopPrice': stop_price}
-            )
-            return order
-        except Exception as e:
-            logger.error(f"Error placing stop-loss order: {e}")
-            return None
+        """Place stop-loss order (simulated)"""
+        logger.info(f"SIMULATED SL ORDER: {side} {quantity} {symbol} @ {stop_price}")
+        return {
+            "orderId": f"sim_sl_order_{int(datetime.now(timezone.utc).timestamp())}",
+            "symbol": symbol,
+            "stopPrice": stop_price
+        }
     
     async def place_take_profit_market_order(
         self,
@@ -209,26 +185,13 @@ class BinanceService:
         quantity: float,
         stop_price: float
     ) -> Optional[Dict[str, Any]]:
-        """Place take-profit order"""
-        if self.mock_mode:
-            return {"orderId": "mock_tp_order_123"}
-        
-        try:
-            # Convert symbol format if needed
-            if '/' not in symbol:
-                symbol = f"{symbol[:-4]}/{symbol[-4:]}"
-            
-            order = self.client.create_order(
-                symbol=symbol,
-                type='take_profit_market',
-                side=side.lower(),
-                amount=quantity,
-                params={'stopPrice': stop_price}
-            )
-            return order
-        except Exception as e:
-            logger.error(f"Error placing take-profit order: {e}")
-            return None
+        """Place take-profit order (simulated)"""
+        logger.info(f"SIMULATED TP ORDER: {side} {quantity} {symbol} @ {stop_price}")
+        return {
+            "orderId": f"sim_tp_order_{int(datetime.now(timezone.utc).timestamp())}",
+            "symbol": symbol,
+            "stopPrice": stop_price
+        }
     
     def _mock_candles(self, symbol: str, limit: int) -> List[Dict[str, Any]]:
         """Generate mock candle data"""
