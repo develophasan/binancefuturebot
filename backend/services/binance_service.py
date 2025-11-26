@@ -1,7 +1,7 @@
 import os
 import asyncio
 from typing import List, Dict, Any, Optional
-import ccxt
+import aiohttp
 import logging
 from datetime import datetime, timezone
 
@@ -12,38 +12,25 @@ class BinanceService:
     def __init__(self, testnet: bool = True):
         self.testnet = testnet
         
+        # Use public API endpoints (no authentication required for market data)
         if testnet:
-            # Testnet credentials
-            api_key = os.getenv("BINANCE_TESTNET_API_KEY", "")
-            api_secret = os.getenv("BINANCE_TESTNET_SECRET_KEY", "")
+            self.base_url = "https://testnet.binancefuture.com/fapi/v1"
+            self.public_base_url = "https://fapi.binance.com/fapi/v1"  # Public data from mainnet
         else:
-            api_key = os.getenv("BINANCE_API_KEY", "")
-            api_secret = os.getenv("BINANCE_SECRET_KEY", "")
+            self.base_url = "https://fapi.binance.com/fapi/v1"
+            self.public_base_url = "https://fapi.binance.com/fapi/v1"
         
-        if not api_key or not api_secret:
-            logger.warning("Binance API keys not configured. Using mock mode.")
-            self.client = None
-            self.mock_mode = True
-        else:
-            try:
-                self.client = ccxt.binance({
-                    'apiKey': api_key,
-                    'secret': api_secret,
-                    'enableRateLimit': True,
-                    'options': {
-                        'defaultType': 'future',
-                    }
-                })
-                
-                if testnet:
-                    self.client.set_sandbox_mode(True)
-                
-                self.mock_mode = False
-                logger.info(f"Binance CCXT client initialized ({'testnet' if testnet else 'mainnet'})")
-            except Exception as e:
-                logger.error(f"Failed to initialize Binance client: {e}")
-                self.client = None
-                self.mock_mode = True
+        # For authenticated operations
+        api_key = os.getenv("BINANCE_TESTNET_API_KEY", "") if testnet else os.getenv("BINANCE_API_KEY", "")
+        api_secret = os.getenv("BINANCE_TESTNET_SECRET_KEY", "") if testnet else os.getenv("BINANCE_SECRET_KEY", "")
+        
+        self.api_key = api_key
+        self.api_secret = api_secret
+        
+        # Use public data mode (no authentication needed for market data)
+        self.mock_mode = False
+        self.public_data_mode = True
+        logger.info(f"Binance service initialized with public data API")
     
     async def get_candles(self, symbol: str, interval: str = "5m", limit: int = 100) -> List[Dict[str, Any]]:
         """Fetch OHLCV candles"""
