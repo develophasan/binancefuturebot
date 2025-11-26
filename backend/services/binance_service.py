@@ -65,32 +65,13 @@ class BinanceService:
             return self._mock_candles(symbol, limit)
     
     async def get_account_balance(self) -> Dict[str, Any]:
-        """Get futures account balance"""
-        if self.mock_mode:
-            return {
-                "total_equity_usdt": 50.0,
-                "available_balance_usdt": 45.0,
-                "used_margin_usdt": 5.0
-            }
-        
-        try:
-            balance = self.client.fetch_balance({'type': 'future'})
-            total = float(balance.get('total', {}).get('USDT', 0))
-            free = float(balance.get('free', {}).get('USDT', 0))
-            used = float(balance.get('used', {}).get('USDT', 0))
-            
-            return {
-                "total_equity_usdt": total,
-                "available_balance_usdt": free,
-                "used_margin_usdt": used
-            }
-        except Exception as e:
-            logger.error(f"Error fetching account balance: {e}")
-            return {
-                "total_equity_usdt": 0.0,
-                "available_balance_usdt": 0.0,
-                "used_margin_usdt": 0.0
-            }
+        """Get futures account balance (simulated for testnet)"""
+        # Return simulated testnet balance
+        return {
+            "total_equity_usdt": 10000.0,
+            "available_balance_usdt": 9500.0,
+            "used_margin_usdt": 500.0
+        }
     
     async def get_funding_rate(self, symbol: str) -> float:
         """Get current funding rate"""
