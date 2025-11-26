@@ -36,14 +36,14 @@ class PositionMonitor:
         logger.info("Position monitor stopped")
     
     async def _monitor_loop(self):
-        """Main monitoring loop - checks positions every 2 seconds"""
+        """Main monitoring loop - checks positions every 1 second"""
         while self.is_running:
             try:
                 await self._check_all_positions()
-                await asyncio.sleep(2)  # Check every 2 seconds for real-time updates
+                await asyncio.sleep(1)  # Check every 1 second for ultra-fast updates
             except Exception as e:
                 logger.error(f"Error in monitor loop: {e}", exc_info=True)
-                await asyncio.sleep(5)
+                await asyncio.sleep(2)
     
     async def _check_all_positions(self):
         """Check all open positions"""
