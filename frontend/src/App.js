@@ -14,9 +14,10 @@ function App() {
         <Routes>
           <Route path="/" element={<Layout />}>
             <Route index element={<Dashboard />} />
-            <Route path="settings" element={<Settings />} />
             <Route path="positions" element={<Positions />} />
+            <Route path="history" element={<History />} />
             <Route path="decisions" element={<Decisions />} />
+            <Route path="settings" element={<Settings />} />
           </Route>
         </Routes>
       </BrowserRouter>
