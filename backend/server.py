@@ -149,19 +149,26 @@ async def update_settings(update: UserSettingsUpdate):
 
 @api_router.get("/positions", response_model=List[Position])
 async def get_positions(status: str = "OPEN"):
-    """Get positions by status"""
+    """Get positions by status with real-time PnL"""
     query = {"user_id": "default_user"}
     if status:
         query["status"] = status
     
     positions = await db.positions.find(query, {"_id": 0}).to_list(1000)
     
-    # Convert ISO strings back to datetime
+    # Convert ISO strings back to datetime and add real-time PnL
     for pos in positions:
         if isinstance(pos.get('opened_at'), str):
             pos['opened_at'] = datetime.fromisoformat(pos['opened_at'])
         if pos.get('closed_at') and isinstance(pos['closed_at'], str):
             pos['closed_at'] = datetime.fromisoformat(pos['closed_at'])
+        
+        # Add real-time PnL for open positions
+        if status == "OPEN" and position_monitor:
+            pnl_data = await position_monitor.get_position_pnl(pos)
+            pos['current_price'] = pnl_data['current_price']
+            pos['unrealized_pnl_usdt'] = pnl_data['unrealized_pnl']
+            pos['price_change_percent'] = pnl_data['price_change_percent']
     
     return positions
 
