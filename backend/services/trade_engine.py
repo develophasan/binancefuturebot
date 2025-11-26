@@ -238,9 +238,9 @@ class TradeEngine:
                 quantity=quantity,
                 take_profit_price=tp_price,
                 stop_loss_price=sl_price,
-                entry_order_id=entry_order.get('orderId'),
-                tp_order_id=tp_order.get('orderId') if tp_order else None,
-                sl_order_id=sl_order.get('orderId') if sl_order else None
+                entry_order_id=str(entry_order.get('orderId', '')),
+                tp_order_id=str(tp_order.get('orderId', '')) if tp_order else None,
+                sl_order_id=str(sl_order.get('orderId', '')) if sl_order else None
             )
             
             position_dict = position.model_dump()
