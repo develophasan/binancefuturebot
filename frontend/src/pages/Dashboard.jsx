@@ -31,7 +31,11 @@ const Dashboard = () => {
   
   useEffect(() => {
     fetchData();
-    const interval = setInterval(fetchData, 3000); // 3 saniyede bir güncelle (gerçek zamanlı)
+    // 2 saniyede bir güncelle (gerçek zamanlı)
+    const interval = setInterval(() => {
+      fetchData();
+      console.log('🔄 Dashboard güncelleniyor...', new Date().toLocaleTimeString());
+    }, 2000);
     return () => clearInterval(interval);
   }, []);
   
