@@ -4,6 +4,7 @@ import { TrendingUp, Clock, DollarSign, Target, AlertTriangle } from "lucide-rea
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
+import { formatPrice, formatPnL, formatPercent } from "@/utils/formatPrice";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
