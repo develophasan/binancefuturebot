@@ -1,7 +1,11 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { Brain, TrendingUp, X, Clock } from "lucide-react";
+import { Brain, TrendingUp, X, Clock, Play } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
