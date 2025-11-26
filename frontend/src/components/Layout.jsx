@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation } from "react-router-dom";
-import { Activity, Settings as SettingsIcon, TrendingUp, Brain } from "lucide-react";
+import { Activity, Settings as SettingsIcon, TrendingUp, Brain, History } from "lucide-react";
 
 const Layout = () => {
   const location = useLocation();
