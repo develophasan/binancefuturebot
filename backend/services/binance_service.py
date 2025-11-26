@@ -15,15 +15,23 @@ class BinanceService:
     def __init__(self, testnet: bool = True):
         self.testnet = testnet
         
-        # Use correct Binance Testnet endpoints
-        if testnet:
-            # Spot Testnet for market data (public)
-            self.spot_base_url = "https://testnet.binance.vision/api"
-            # We'll use Spot data since Futures testnet requires different setup
-            self.api_base_url = "https://testnet.binance.vision/api"
+        # Check for Cloudflare Worker proxy
+        worker_url = os.getenv("CLOUDFLARE_WORKER_URL", "")
+        
+        if worker_url:
+            # Use Cloudflare Worker as proxy
+            self.spot_base_url = f"{worker_url}/testnet/api"
+            self.api_base_url = f"{worker_url}/testnet/api"
+            logger.info(f"🌐 Using Cloudflare Worker proxy: {worker_url}")
         else:
-            self.spot_base_url = "https://api.binance.com/api"
-            self.api_base_url = "https://api.binance.com/api"
+            # Direct Binance endpoints (will likely be blocked)
+            if testnet:
+                self.spot_base_url = "https://testnet.binance.vision/api"
+                self.api_base_url = "https://testnet.binance.vision/api"
+            else:
+                self.spot_base_url = "https://api.binance.com/api"
+                self.api_base_url = "https://api.binance.com/api"
+            logger.warning("No Cloudflare Worker URL, using direct Binance endpoints")
         
         # Get API credentials
         api_key = os.getenv("BINANCE_TESTNET_API_KEY", "") if testnet else os.getenv("BINANCE_API_KEY", "")
@@ -34,9 +42,9 @@ class BinanceService:
         self.has_credentials = bool(api_key and api_secret)
         
         if self.has_credentials:
-            logger.info(f"Binance service initialized with Testnet API credentials")
+            logger.info(f"✅ Binance service initialized with Testnet API credentials")
         else:
-            logger.warning("No API credentials found, using public data only")
+            logger.warning("⚠️ No API credentials found, using public data only")
         
         self.mock_mode = False
     
