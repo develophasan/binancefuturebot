@@ -163,7 +163,7 @@ const Positions = () => {
               {formatDate(position.opened_at)}
             </div>
             <div className="text-xs text-gray-400">
-              Miktar: {position.quantity?.toFixed(4)}
+              Miktar: {formatPrice(position.quantity)}
             </div>
           </div>
         </CardContent>
