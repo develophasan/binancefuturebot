@@ -7,6 +7,7 @@ const Layout = () => {
   const navItems = [
     { path: "/", label: "Dashboard", icon: Activity },
     { path: "/positions", label: "Pozisyonlar", icon: TrendingUp },
+    { path: "/history", label: "Geçmiş", icon: History },
     { path: "/decisions", label: "AI Kararları", icon: Brain },
     { path: "/settings", label: "Ayarlar", icon: SettingsIcon },
   ];
