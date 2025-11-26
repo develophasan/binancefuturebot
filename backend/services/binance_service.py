@@ -209,6 +209,28 @@ class BinanceService:
             logger.error(f"Error fetching open interest for {symbol}: {e}")
             return {"open_interest": 0.0, "change_24h_percent": 0.0}
     
+    async def get_ticker(self, symbol: str) -> Optional[Dict[str, Any]]:
+        """Get current price for a symbol"""
+        url = f"{self.futures_base_url}/fapi/v1/ticker/price"
+        proxy = self._get_next_proxy()
+        
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(
+                    url,
+                    params={"symbol": symbol},
+                    proxy=proxy,
+                    timeout=aiohttp.ClientTimeout(total=10)
+                ) as response:
+                    if response.status == 200:
+                        return await response.json()
+                    else:
+                        logger.error(f"Failed to get ticker for {symbol}: {response.status}")
+                        return None
+        except Exception as e:
+            logger.error(f"Error getting ticker for {symbol}: {e}")
+            return None
+    
     async def get_top_gainers(self, limit: int = 10) -> List[Dict[str, Any]]:
         """Get top gaining FUTURES symbols in 24h via proxy"""
         url = f"{self.futures_base_url}/fapi/v1/ticker/24hr"
