@@ -116,7 +116,7 @@ class BinanceService:
         return signature
     
     async def get_account_balance(self) -> Dict[str, Any]:
-        """Get Spot account balance from Binance Testnet"""
+        """Get Spot account balance from Binance Testnet via proxy"""
         if not self.has_credentials:
             logger.warning("No API credentials, returning simulated balance")
             return {
@@ -139,9 +139,17 @@ class BinanceService:
             "X-MBX-APIKEY": self.api_key
         }
         
+        proxy = self._get_next_proxy()
+        
         try:
             async with aiohttp.ClientSession() as session:
-                async with session.get(url, params=params, headers=headers, timeout=aiohttp.ClientTimeout(total=10)) as response:
+                async with session.get(
+                    url, 
+                    params=params, 
+                    headers=headers,
+                    proxy=proxy,
+                    timeout=aiohttp.ClientTimeout(total=15)
+                ) as response:
                     if response.status == 200:
                         data = await response.json()
                         
@@ -152,7 +160,7 @@ class BinanceService:
                                 usdt_balance = float(balance['free']) + float(balance['locked'])
                                 break
                         
-                        logger.info(f"✅ Successfully fetched REAL account balance: {usdt_balance} USDT")
+                        logger.info(f"✅ Successfully fetched REAL account balance: {usdt_balance} USDT via proxy")
                         
                         return {
                             "total_equity_usdt": usdt_balance,
@@ -161,7 +169,7 @@ class BinanceService:
                         }
                     else:
                         error_text = await response.text()
-                        logger.error(f"❌ Error fetching account balance: {response.status} - {error_text}")
+                        logger.error(f"❌ Error fetching account balance: {response.status} - {error_text[:100]}")
                         return {
                             "total_equity_usdt": 10000.0,
                             "available_balance_usdt": 9500.0,
