@@ -74,14 +74,75 @@ class BinanceService:
             logger.error(f"❌ Error fetching candles for {symbol}: {e}")
             return self._mock_candles(symbol, limit)
     
+    def _sign_request(self, params: Dict[str, Any]) -> str:
+        """Sign request with HMAC SHA256"""
+        query_string = urlencode(params)
+        signature = hmac.new(
+            self.api_secret.encode('utf-8'),
+            query_string.encode('utf-8'),
+            hashlib.sha256
+        ).hexdigest()
+        return signature
+    
     async def get_account_balance(self) -> Dict[str, Any]:
-        """Get futures account balance (simulated for testnet)"""
-        # Return simulated testnet balance
-        return {
-            "total_equity_usdt": 10000.0,
-            "available_balance_usdt": 9500.0,
-            "used_margin_usdt": 500.0
+        """Get Spot account balance from Binance Testnet"""
+        if not self.has_credentials:
+            logger.warning("No API credentials, returning simulated balance")
+            return {
+                "total_equity_usdt": 10000.0,
+                "available_balance_usdt": 9500.0,
+                "used_margin_usdt": 500.0
+            }
+        
+        url = f"{self.api_base_url}/v3/account"
+        timestamp = int(datetime.now(timezone.utc).timestamp() * 1000)
+        
+        params = {
+            "timestamp": timestamp
         }
+        
+        signature = self._sign_request(params)
+        params["signature"] = signature
+        
+        headers = {
+            "X-MBX-APIKEY": self.api_key
+        }
+        
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url, params=params, headers=headers, timeout=aiohttp.ClientTimeout(total=10)) as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        
+                        # Get USDT balance
+                        usdt_balance = 0.0
+                        for balance in data.get('balances', []):
+                            if balance['asset'] == 'USDT':
+                                usdt_balance = float(balance['free']) + float(balance['locked'])
+                                break
+                        
+                        logger.info(f"✅ Successfully fetched REAL account balance: {usdt_balance} USDT")
+                        
+                        return {
+                            "total_equity_usdt": usdt_balance,
+                            "available_balance_usdt": usdt_balance,
+                            "used_margin_usdt": 0.0
+                        }
+                    else:
+                        error_text = await response.text()
+                        logger.error(f"❌ Error fetching account balance: {response.status} - {error_text}")
+                        return {
+                            "total_equity_usdt": 10000.0,
+                            "available_balance_usdt": 9500.0,
+                            "used_margin_usdt": 500.0
+                        }
+        except Exception as e:
+            logger.error(f"❌ Error fetching account balance: {e}")
+            return {
+                "total_equity_usdt": 10000.0,
+                "available_balance_usdt": 9500.0,
+                "used_margin_usdt": 500.0
+            }
     
     async def get_funding_rate(self, symbol: str) -> float:
         """Get current funding rate"""
