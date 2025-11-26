@@ -131,21 +131,22 @@ class BinanceService:
             return self._mock_top_gainers(limit)
         
         try:
-            tickers = self.client.futures_ticker()
+            tickers = self.client.fetch_tickers()
             
             # Filter valid USDT pairs and sort by price change
             usdt_pairs = []
-            for ticker in tickers:
-                symbol = ticker['symbol']
-                if symbol.endswith('USDT'):
+            for symbol, ticker in tickers.items():
+                if symbol.endswith('/USDT'):
                     try:
-                        price_change = float(ticker.get('priceChangePercent', 0))
+                        price_change = float(ticker.get('percentage', 0))
                         volume = float(ticker.get('quoteVolume', 0))
-                        price = float(ticker.get('lastPrice', 0))
+                        price = float(ticker.get('last', 0))
                         
                         if price_change > 0 and volume > 0:
+                            # Convert symbol format from BTC/USDT to BTCUSDT
+                            clean_symbol = symbol.replace('/', '')
                             usdt_pairs.append({
-                                "symbol": symbol,
+                                "symbol": clean_symbol,
                                 "price_change_percent": price_change,
                                 "volume_24h": volume,
                                 "price": price
