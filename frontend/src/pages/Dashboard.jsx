@@ -135,7 +135,7 @@ const Dashboard = () => {
                 ? "text-emerald-400"
                 : "text-red-400"
             }`}>
-              ${(status?.daily_pnl_usdt || 0).toFixed(2)}
+              ${formatPnL(status?.daily_pnl_usdt || 0)}
             </p>
             <p className="text-xs text-gray-500 mt-1">USDT</p>
           </CardContent>
