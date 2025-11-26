@@ -101,38 +101,42 @@ class BinanceService:
             return {"open_interest": 0.0, "change_24h_percent": 0.0}
     
     async def get_top_gainers(self, limit: int = 10) -> List[Dict[str, Any]]:
-        """Get top gaining symbols in 24h"""
-        if self.mock_mode:
-            return self._mock_top_gainers(limit)
-        
+        """Get top gaining symbols in 24h from public API"""
         try:
-            tickers = self.client.fetch_tickers()
+            url = f"{self.public_base_url}/ticker/24hr"
             
-            # Filter valid USDT pairs and sort by price change
-            usdt_pairs = []
-            for symbol, ticker in tickers.items():
-                if symbol.endswith('/USDT'):
-                    try:
-                        price_change = float(ticker.get('percentage', 0))
-                        volume = float(ticker.get('quoteVolume', 0))
-                        price = float(ticker.get('last', 0))
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url) as response:
+                    if response.status == 200:
+                        tickers = await response.json()
                         
-                        if price_change > 0 and volume > 0:
-                            # Convert symbol format from BTC/USDT to BTCUSDT
-                            clean_symbol = symbol.replace('/', '')
-                            usdt_pairs.append({
-                                "symbol": clean_symbol,
-                                "price_change_percent": price_change,
-                                "volume_24h": volume,
-                                "price": price
-                            })
-                    except:
-                        continue
-            
-            # Sort by price change descending
-            usdt_pairs.sort(key=lambda x: x['price_change_percent'], reverse=True)
-            
-            return usdt_pairs[:limit]
+                        # Filter valid USDT pairs and sort by price change
+                        usdt_pairs = []
+                        for ticker in tickers:
+                            symbol = ticker.get('symbol', '')
+                            if symbol.endswith('USDT'):
+                                try:
+                                    price_change = float(ticker.get('priceChangePercent', 0))
+                                    volume = float(ticker.get('quoteVolume', 0))
+                                    price = float(ticker.get('lastPrice', 0))
+                                    
+                                    if price_change > 0 and volume > 1000000:  # Min volume filter
+                                        usdt_pairs.append({
+                                            "symbol": symbol,
+                                            "price_change_percent": price_change,
+                                            "volume_24h": volume,
+                                            "price": price
+                                        })
+                                except:
+                                    continue
+                        
+                        # Sort by price change descending
+                        usdt_pairs.sort(key=lambda x: x['price_change_percent'], reverse=True)
+                        
+                        return usdt_pairs[:limit]
+                    else:
+                        logger.error(f"Error fetching top gainers: HTTP {response.status}")
+                        return self._mock_top_gainers(limit)
         except Exception as e:
             logger.error(f"Error fetching top gainers: {e}")
             return self._mock_top_gainers(limit)
