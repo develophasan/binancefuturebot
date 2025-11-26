@@ -59,10 +59,11 @@ class PositionMonitor:
             
             # Get unique symbols
             symbols = list(set([pos['symbol'] for pos in positions]))
-            logger.debug(f"Monitoring {len(positions)} positions across {len(symbols)} symbols")
+            logger.info(f"📊 Monitoring {len(positions)} positions: {symbols}")
             
             # Fetch current prices for all symbols
             await self._update_prices(symbols)
+            logger.info(f"💰 Current prices: {self.current_prices}")
             
             # Check each position
             for position in positions:
