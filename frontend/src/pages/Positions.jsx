@@ -36,11 +36,11 @@ const Positions = () => {
   
   useEffect(() => {
     fetchPositions();
-    // 2 saniyede bir güncelle (gerçek zamanlı)
+    // Her 1 saniyede bir güncelle (ultra hızlı)
     const interval = setInterval(() => {
       fetchPositions();
       console.log('📊 Pozisyonlar güncelleniyor...', new Date().toLocaleTimeString());
-    }, 2000);
+    }, 1000);
     return () => clearInterval(interval);
   }, []);
   
