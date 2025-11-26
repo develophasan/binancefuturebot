@@ -271,18 +271,19 @@ class TradeEngine:
         """Get dynamic symbol list (whitelist + top gainers) - AGGRESSIVE for testnet"""
         symbols = list(settings.symbol_whitelist)
         
-        # Add MORE top gainers for aggressive testing
+        # Add BEST top gainers only (quality over quantity)
         try:
-            top_gainers = await self.binance.get_top_gainers(limit=15)  # Increased from 5 to 15
+            top_gainers = await self.binance.get_top_gainers(limit=5)  # Only top 5 strongest
             for gainer in top_gainers:
                 symbol = gainer['symbol']
-                if symbol not in symbols:
+                # Only add if volume is significant (>5M USDT)
+                if symbol not in symbols and gainer['volume_24h'] > 5000000:
                     symbols.append(symbol)
-                    logger.info(f"🎯 Tracking top gainer: {symbol} (+{gainer['price_change_percent']:.2f}%)")
+                    logger.info(f"🎯 Tracking strong gainer: {symbol} (+{gainer['price_change_percent']:.2f}%, Vol: ${gainer['volume_24h']/1000000:.1f}M)")
         except Exception as e:
             logger.error(f"Error fetching top gainers: {e}")
         
-        logger.info(f"📊 Analyzing {len(symbols)} symbols this cycle")
+        logger.info(f"📊 Analyzing {len(symbols)} HIGH-QUALITY symbols this cycle")
         return symbols
     
     async def _get_settings(self) -> UserSettings:
