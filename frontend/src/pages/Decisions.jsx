@@ -54,6 +54,44 @@ const Decisions = () => {
     });
   };
   
+  const openManualTradeModal = (decisionLog) => {
+    setSelectedDecision(decisionLog);
+    
+    // AI'nın önerdiği değerleri default olarak ayarla
+    const aiPosition = decisionLog.decision.position || {};
+    const aiRisk = decisionLog.decision.risk || {};
+    
+    setManualTradeParams({
+      position_size_usdt: aiPosition.position_size_value || 50,
+      leverage: aiPosition.leverage || 3,
+      target_profit_percent: aiRisk.target_profit_percent || 4,
+      stop_loss_percent: aiRisk.stop_loss_percent || 2
+    });
+    
+    setModalOpen(true);
+  };
+  
+  const handleManualTrade = async () => {
+    if (!selectedDecision) return;
+    
+    setSubmitting(true);
+    try {
+      const response = await axios.post(`${API}/positions/manual`, {
+        symbol: selectedDecision.symbol,
+        ...manualTradeParams
+      });
+      
+      toast.success(response.data.message || "Pozisyon başarıyla açıldı!");
+      setModalOpen(false);
+      fetchDecisions(); // Refresh decisions
+    } catch (error) {
+      console.error("Error opening manual position:", error);
+      toast.error(error.response?.data?.detail || "Pozisyon açılırken hata oluştu");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+  
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
