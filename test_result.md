@@ -214,13 +214,9 @@ metadata:
   run_ui: true
 
 test_plan:
-  current_focus:
-    - "Combined coin tracking (Top Gainers + Popular Coins)"
-    - "Trade History page"
-    - "Settings page with all parameters"
-    - "Database persistence (no auto-wipe on restart)"
+  current_focus: []
   stuck_tasks: []
-  test_all: true
+  test_all: false
   test_priority: "high_first"
 
 agent_communication:
