@@ -223,6 +223,115 @@ const Decisions = () => {
           })}
         </div>
       )}
+      
+      {/* Manuel Trade Modal */}
+      <Dialog open={modalOpen} onOpenChange={setModalOpen}>
+        <DialogContent className="bg-[#0a0e27] border-white/10 text-white sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-cyan-400">
+              Manuel Pozisyon Aç - {selectedDecision?.symbol}
+            </DialogTitle>
+            <DialogDescription className="text-gray-400">
+              AI önerilerini kullanabilir veya kendi parametrelerinizi ayarlayabilirsiniz
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div>
+              <Label className="text-white">Pozisyon Miktarı (USDT)</Label>
+              <Input
+                type="number"
+                value={manualTradeParams.position_size_usdt}
+                onChange={(e) => setManualTradeParams({
+                  ...manualTradeParams,
+                  position_size_usdt: parseFloat(e.target.value)
+                })}
+                className="bg-black/40 border-white/20 text-white mt-1"
+                min="1"
+                step="1"
+              />
+            </div>
+            
+            <div>
+              <Label className="text-white">Kaldıraç (x)</Label>
+              <Input
+                type="number"
+                value={manualTradeParams.leverage}
+                onChange={(e) => setManualTradeParams({
+                  ...manualTradeParams,
+                  leverage: parseInt(e.target.value)
+                })}
+                className="bg-black/40 border-white/20 text-white mt-1"
+                min="1"
+                max="20"
+                step="1"
+              />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label className="text-white">Take Profit (%)</Label>
+                <Input
+                  type="number"
+                  value={manualTradeParams.target_profit_percent}
+                  onChange={(e) => setManualTradeParams({
+                    ...manualTradeParams,
+                    target_profit_percent: parseFloat(e.target.value)
+                  })}
+                  className="bg-black/40 border-white/20 text-white mt-1"
+                  min="0.1"
+                  step="0.1"
+                />
+              </div>
+              
+              <div>
+                <Label className="text-white">Stop Loss (%)</Label>
+                <Input
+                  type="number"
+                  value={manualTradeParams.stop_loss_percent}
+                  onChange={(e) => setManualTradeParams({
+                    ...manualTradeParams,
+                    stop_loss_percent: parseFloat(e.target.value)
+                  })}
+                  className="bg-black/40 border-white/20 text-white mt-1"
+                  min="0.1"
+                  step="0.1"
+                />
+              </div>
+            </div>
+            
+            {/* AI Öneri Bilgisi */}
+            <div className="p-3 bg-cyan-500/10 border border-cyan-500/30 rounded-lg">
+              <p className="text-xs text-cyan-300 font-medium mb-1">
+                💡 AI Önerileri
+              </p>
+              <p className="text-xs text-gray-300">
+                Güven: {selectedDecision ? (selectedDecision.decision.confidence * 100).toFixed(0) : 0}% | 
+                Risk/Reward: {manualTradeParams.target_profit_percent > 0 && manualTradeParams.stop_loss_percent > 0 
+                  ? (manualTradeParams.target_profit_percent / manualTradeParams.stop_loss_percent).toFixed(1)
+                  : "0"}:1
+              </p>
+            </div>
+          </div>
+          
+          <div className="flex gap-3 justify-end">
+            <Button
+              variant="outline"
+              onClick={() => setModalOpen(false)}
+              className="border-white/20 text-white hover:bg-white/10"
+            >
+              İptal
+            </Button>
+            <Button
+              onClick={handleManualTrade}
+              disabled={submitting}
+              className="bg-emerald-500 hover:bg-emerald-600 text-white"
+            >
+              {submitting ? "Açılıyor..." : "Pozisyon Aç"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
