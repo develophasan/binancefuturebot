@@ -54,10 +54,12 @@ class PositionMonitor:
             }).to_list(100)
             
             if not positions:
+                logger.debug("No open positions to monitor")
                 return
             
             # Get unique symbols
             symbols = list(set([pos['symbol'] for pos in positions]))
+            logger.debug(f"Monitoring {len(positions)} positions across {len(symbols)} symbols")
             
             # Fetch current prices for all symbols
             await self._update_prices(symbols)
