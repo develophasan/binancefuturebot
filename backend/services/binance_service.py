@@ -5,6 +5,7 @@ import aiohttp
 import hmac
 import hashlib
 import logging
+import random
 from datetime import datetime, timezone
 from urllib.parse import urlencode
 
@@ -15,23 +16,13 @@ class BinanceService:
     def __init__(self, testnet: bool = True):
         self.testnet = testnet
         
-        # Check for Cloudflare Worker proxy
-        worker_url = os.getenv("CLOUDFLARE_WORKER_URL", "")
-        
-        if worker_url:
-            # Use Cloudflare Worker as proxy
-            self.spot_base_url = f"{worker_url}/testnet/api"
-            self.api_base_url = f"{worker_url}/testnet/api"
-            logger.info(f"🌐 Using Cloudflare Worker proxy: {worker_url}")
+        # Direct Binance endpoints
+        if testnet:
+            self.spot_base_url = "https://testnet.binance.vision/api"
+            self.api_base_url = "https://testnet.binance.vision/api"
         else:
-            # Direct Binance endpoints (will likely be blocked)
-            if testnet:
-                self.spot_base_url = "https://testnet.binance.vision/api"
-                self.api_base_url = "https://testnet.binance.vision/api"
-            else:
-                self.spot_base_url = "https://api.binance.com/api"
-                self.api_base_url = "https://api.binance.com/api"
-            logger.warning("No Cloudflare Worker URL, using direct Binance endpoints")
+            self.spot_base_url = "https://api.binance.com/api"
+            self.api_base_url = "https://api.binance.com/api"
         
         # Get API credentials
         api_key = os.getenv("BINANCE_TESTNET_API_KEY", "") if testnet else os.getenv("BINANCE_API_KEY", "")
@@ -41,12 +32,37 @@ class BinanceService:
         self.api_secret = api_secret
         self.has_credentials = bool(api_key and api_secret)
         
+        # Setup proxy list
+        self.proxy_list = []
+        proxy_list_str = os.getenv("PROXY_LIST", "")
+        if proxy_list_str:
+            for proxy_str in proxy_list_str.split(','):
+                parts = proxy_str.strip().split(':')
+                if len(parts) == 4:
+                    ip, port, username, password = parts
+                    proxy_url = f"http://{username}:{password}@{ip}:{port}"
+                    self.proxy_list.append(proxy_url)
+            logger.info(f"🌐 Loaded {len(self.proxy_list)} proxies for Binance API")
+        else:
+            logger.warning("⚠️ No proxies configured, direct connection will be attempted")
+        
         if self.has_credentials:
             logger.info(f"✅ Binance service initialized with Testnet API credentials")
         else:
             logger.warning("⚠️ No API credentials found, using public data only")
         
         self.mock_mode = False
+        self.current_proxy_index = 0
+    
+    def _get_next_proxy(self) -> Optional[str]:
+        """Get next proxy from rotation"""
+        if not self.proxy_list:
+            return None
+        
+        # Round-robin proxy selection
+        proxy = self.proxy_list[self.current_proxy_index]
+        self.current_proxy_index = (self.current_proxy_index + 1) % len(self.proxy_list)
+        return proxy
     
     async def get_candles(self, symbol: str, interval: str = "5m", limit: int = 100) -> List[Dict[str, Any]]:
         """Fetch OHLCV candles from Binance Testnet"""
