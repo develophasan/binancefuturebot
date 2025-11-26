@@ -92,6 +92,14 @@ class UserSettingsUpdate(BaseModel):
     is_active: Optional[bool] = None
 
 
+class ManualTradeRequest(BaseModel):
+    symbol: str
+    position_size_usdt: float
+    leverage: int
+    target_profit_percent: float
+    stop_loss_percent: float
+
+
 class Position(BaseModel):
     model_config = ConfigDict(extra="ignore")
     
