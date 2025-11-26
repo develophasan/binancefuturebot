@@ -103,51 +103,63 @@ user_problem_statement: "Full-stack AI-powered Binance Futures trading bot with 
 backend:
   - task: "Combined coin tracking (Top Gainers + Popular Coins)"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/services/trade_engine.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Implemented _get_symbol_list to fetch both popular coins from settings.symbol_whitelist and top gainers from Binance API. Removes duplicates and filters by volume >3M USDT"
+      - working: true
+        agent: "testing"
+        comment: "✅ VERIFIED: Bot logs show combined coin tracking working perfectly. Found logs: 'Base popular coins: 2 symbols', 'Added top gainer: PORT3USDT (+42.81%, Vol: $28222.0M)', 'Total symbols to analyze this cycle: 12'. Bot successfully combines popular coins with top gainers, filters by >3M volume, and removes duplicates."
 
   - task: "Settings API endpoints (GET/PUT)"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "API endpoints already exist at /api/settings. Need to verify GET and PUT operations work correctly"
+      - working: true
+        agent: "testing"
+        comment: "✅ VERIFIED: Both GET /api/settings and PUT /api/settings working correctly. GET returns all bot parameters including position_size_value, leverage, risk management settings. PUT successfully updates settings and persists changes. Tested updating position_size_value from 15.0 to 10.0 - change applied successfully."
 
   - task: "Closed positions API endpoint"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Endpoint /api/positions?status=CLOSED already exists and returns closed trades with realized PnL"
+      - working: true
+        agent: "testing"
+        comment: "✅ VERIFIED: GET /api/positions?status=CLOSED working perfectly. Returns 2 closed positions with all required fields: realized_pnl_usdt, entry_price, exit_price, status. Example: ENAUSDT (realized_pnl_usdt: -0.27), DEEPUSDT (realized_pnl_usdt: 3.65). Total PnL: $3.38 as expected."
 
   - task: "Database persistence (no auto-wipe on restart)"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Verified that startup_event does NOT contain delete_many calls. Database should persist across restarts"
+      - working: true
+        agent: "testing"
+        comment: "✅ VERIFIED: Database persistence working correctly. Found persistent data: 2 positions, 140 AI decisions, 1 settings record. No auto-wipe on startup confirmed - startup_event only initializes services without clearing collections. Data survives server restarts."
 
 frontend:
   - task: "Settings page with all parameters"
