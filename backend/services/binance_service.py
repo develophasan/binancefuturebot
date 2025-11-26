@@ -210,8 +210,8 @@ class BinanceService:
             return {"open_interest": 0.0, "change_24h_percent": 0.0}
     
     async def get_top_gainers(self, limit: int = 10) -> List[Dict[str, Any]]:
-        """Get top gaining symbols in 24h from Binance Testnet via proxy"""
-        url = f"{self.spot_base_url}/v3/ticker/24hr"
+        """Get top gaining FUTURES symbols in 24h via proxy"""
+        url = f"{self.futures_base_url}/fapi/v1/ticker/24hr"
         proxy = self._get_next_proxy()
         
         try:
@@ -224,17 +224,19 @@ class BinanceService:
                     if response.status == 200:
                         tickers = await response.json()
                         
-                        # Filter valid USDT pairs and sort by price change
+                        # Filter valid USDT perpetual contracts and sort by price change
                         usdt_pairs = []
                         for ticker in tickers:
                             symbol = ticker.get('symbol', '')
+                            # Only perpetual USDT contracts
                             if symbol.endswith('USDT'):
                                 try:
                                     price_change = float(ticker.get('priceChangePercent', 0))
                                     volume = float(ticker.get('quoteVolume', 0))
                                     price = float(ticker.get('lastPrice', 0))
                                     
-                                    if price_change > 0 and volume > 100000:
+                                    # Higher volume filter for futures (more liquid)
+                                    if price_change > 0 and volume > 1000000:
                                         usdt_pairs.append({
                                             "symbol": symbol,
                                             "price_change_percent": price_change,
@@ -247,14 +249,14 @@ class BinanceService:
                         # Sort by price change descending
                         usdt_pairs.sort(key=lambda x: x['price_change_percent'], reverse=True)
                         
-                        logger.info(f"✅ Successfully fetched {len(usdt_pairs)} REAL top gainers via proxy")
+                        logger.info(f"✅ Fetched {len(usdt_pairs)} FUTURES top gainers (24h)")
                         return usdt_pairs[:limit]
                     else:
                         error_text = await response.text()
-                        logger.error(f"❌ Error fetching top gainers: {response.status} - {error_text[:100]}")
+                        logger.error(f"❌ Futures 24hr ticker error {response.status}: {error_text[:100]}")
                         return self._mock_top_gainers(limit)
         except Exception as e:
-            logger.error(f"❌ Error fetching top gainers: {e}")
+            logger.error(f"❌ Error fetching FUTURES top gainers: {e}")
             return self._mock_top_gainers(limit)
     
     async def place_market_order(
