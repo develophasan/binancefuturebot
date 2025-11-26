@@ -151,7 +151,7 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold text-white">
-              ${(status?.total_equity_usdt || 0).toFixed(2)}
+              ${formatPrice(status?.total_equity_usdt || 0)}
             </p>
             <p className="text-xs text-gray-500 mt-1">USDT</p>
           </CardContent>
