@@ -238,19 +238,21 @@ class TradeEngine:
             logger.error(f"Error executing long for {symbol}: {e}", exc_info=True)
     
     async def _get_symbol_list(self, settings: UserSettings) -> List[str]:
-        """Get dynamic symbol list (whitelist + top gainers)"""
+        """Get dynamic symbol list (whitelist + top gainers) - AGGRESSIVE for testnet"""
         symbols = list(settings.symbol_whitelist)
         
-        # Add top gainers
+        # Add MORE top gainers for aggressive testing
         try:
-            top_gainers = await self.binance.get_top_gainers(limit=5)
+            top_gainers = await self.binance.get_top_gainers(limit=15)  # Increased from 5 to 15
             for gainer in top_gainers:
                 symbol = gainer['symbol']
                 if symbol not in symbols:
                     symbols.append(symbol)
+                    logger.info(f"🎯 Tracking top gainer: {symbol} (+{gainer['price_change_percent']:.2f}%)")
         except Exception as e:
             logger.error(f"Error fetching top gainers: {e}")
         
+        logger.info(f"📊 Analyzing {len(symbols)} symbols this cycle")
         return symbols
     
     async def _get_settings(self) -> UserSettings:
