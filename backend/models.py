@@ -39,7 +39,7 @@ class UserSettings(BaseModel):
     
     # Position sizing
     position_size_mode: PositionSizeMode = PositionSizeMode.FIXED_USDT
-    position_size_value: float = 10.0  # USDT or percentage
+    position_size_value: float = 50.0  # USDT or percentage (min 100 USDT notional for Futures)
     
     # Leverage
     max_leverage: int = 5
