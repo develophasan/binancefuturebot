@@ -65,7 +65,7 @@ class BinanceService:
         return proxy
     
     async def get_candles(self, symbol: str, interval: str = "5m", limit: int = 100) -> List[Dict[str, Any]]:
-        """Fetch OHLCV candles from Binance Testnet"""
+        """Fetch OHLCV candles from Binance Testnet via proxy"""
         url = f"{self.spot_base_url}/v3/klines"
         params = {
             "symbol": symbol,
@@ -73,9 +73,16 @@ class BinanceService:
             "limit": limit
         }
         
+        proxy = self._get_next_proxy()
+        
         try:
             async with aiohttp.ClientSession() as session:
-                async with session.get(url, params=params, timeout=aiohttp.ClientTimeout(total=10)) as response:
+                async with session.get(
+                    url, 
+                    params=params, 
+                    proxy=proxy,
+                    timeout=aiohttp.ClientTimeout(total=15)
+                ) as response:
                     if response.status == 200:
                         data = await response.json()
                         candles = []
@@ -88,11 +95,11 @@ class BinanceService:
                                 "close": float(k[4]),
                                 "volume": float(k[5])
                             })
-                        logger.info(f"✅ Successfully fetched {len(candles)} REAL candles for {symbol} from Binance Testnet")
+                        logger.info(f"✅ Successfully fetched {len(candles)} REAL candles for {symbol} via proxy")
                         return candles
                     else:
                         error_text = await response.text()
-                        logger.error(f"❌ Binance Testnet error {response.status}: {error_text}")
+                        logger.error(f"❌ Binance error {response.status}: {error_text[:100]}")
                         return self._mock_candles(symbol, limit)
         except Exception as e:
             logger.error(f"❌ Error fetching candles for {symbol}: {e}")
