@@ -178,11 +178,15 @@ class BinanceService:
             }
         
         try:
-            order = self.client.futures_create_order(
+            # Convert symbol format if needed (BTCUSDT -> BTC/USDT)
+            if '/' not in symbol:
+                symbol = f"{symbol[:-4]}/{symbol[-4:]}"
+            
+            order = self.client.create_order(
                 symbol=symbol,
-                side=side,
-                type="MARKET",
-                quantity=quantity
+                type='market',
+                side=side.lower(),
+                amount=quantity
             )
             return order
         except Exception as e:
@@ -195,7 +199,11 @@ class BinanceService:
             return True
         
         try:
-            self.client.futures_change_leverage(symbol=symbol, leverage=leverage)
+            # Convert symbol format if needed
+            if '/' not in symbol:
+                symbol = f"{symbol[:-4]}/{symbol[-4:]}"
+            
+            self.client.set_leverage(leverage, symbol)
             return True
         except Exception as e:
             logger.error(f"Error setting leverage: {e}")
@@ -213,12 +221,16 @@ class BinanceService:
             return {"orderId": "mock_sl_order_123"}
         
         try:
-            order = self.client.futures_create_order(
+            # Convert symbol format if needed
+            if '/' not in symbol:
+                symbol = f"{symbol[:-4]}/{symbol[-4:]}"
+            
+            order = self.client.create_order(
                 symbol=symbol,
-                side=side,
-                type="STOP_MARKET",
-                quantity=quantity,
-                stopPrice=stop_price
+                type='stop_market',
+                side=side.lower(),
+                amount=quantity,
+                params={'stopPrice': stop_price}
             )
             return order
         except Exception as e:
@@ -237,12 +249,16 @@ class BinanceService:
             return {"orderId": "mock_tp_order_123"}
         
         try:
-            order = self.client.futures_create_order(
+            # Convert symbol format if needed
+            if '/' not in symbol:
+                symbol = f"{symbol[:-4]}/{symbol[-4:]}"
+            
+            order = self.client.create_order(
                 symbol=symbol,
-                side=side,
-                type="TAKE_PROFIT_MARKET",
-                quantity=quantity,
-                stopPrice=stop_price
+                type='take_profit_market',
+                side=side.lower(),
+                amount=quantity,
+                params={'stopPrice': stop_price}
             )
             return order
         except Exception as e:
