@@ -30,8 +30,9 @@ app = FastAPI(title="Binance Futures AI Trading Bot")
 # Create router with /api prefix
 api_router = APIRouter(prefix="/api")
 
-# Trade engine instance
+# Trade engine and position monitor instances
 trade_engine = None
+position_monitor = None
 binance_service = BinanceService(testnet=True)
 
 # Configure logging
