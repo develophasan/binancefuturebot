@@ -4,6 +4,7 @@ import { Activity, TrendingUp, DollarSign, AlertCircle, PlayCircle, PauseCircle 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { formatPrice, formatPnL, formatPercent } from "@/utils/formatPrice";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
