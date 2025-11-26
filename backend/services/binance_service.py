@@ -80,14 +80,15 @@ class BinanceService:
             }
         
         try:
-            account = self.client.futures_account()
-            total_wallet = float(account.get('totalWalletBalance', 0))
-            available = float(account.get('availableBalance', 0))
+            balance = self.client.fetch_balance({'type': 'future'})
+            total = float(balance.get('total', {}).get('USDT', 0))
+            free = float(balance.get('free', {}).get('USDT', 0))
+            used = float(balance.get('used', {}).get('USDT', 0))
             
             return {
-                "total_equity_usdt": total_wallet,
-                "available_balance_usdt": available,
-                "used_margin_usdt": total_wallet - available
+                "total_equity_usdt": total,
+                "available_balance_usdt": free,
+                "used_margin_usdt": used
             }
         except Exception as e:
             logger.error(f"Error fetching account balance: {e}")
