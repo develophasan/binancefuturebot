@@ -60,8 +60,11 @@ class UserSettings(BaseModel):
     trading_start_hour: int = 0
     trading_end_hour: int = 23
     
-    # Symbol whitelist
-    symbol_whitelist: List[str] = Field(default_factory=lambda: ["BTCUSDT", "ETHUSDT", "BNBUSDT"])
+    # Symbol whitelist (Top 10 popular coins)
+    symbol_whitelist: List[str] = Field(default_factory=lambda: [
+        "BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT", "XRPUSDT",
+        "ADAUSDT", "DOGEUSDT", "MATICUSDT", "DOTUSDT", "AVAXUSDT"
+    ])
     
     # Enable/disable bot
     is_active: bool = True
