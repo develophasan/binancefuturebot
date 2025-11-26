@@ -13,6 +13,15 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const Decisions = () => {
   const [decisions, setDecisions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedDecision, setSelectedDecision] = useState(null);
+  const [manualTradeParams, setManualTradeParams] = useState({
+    position_size_usdt: 50,
+    leverage: 3,
+    target_profit_percent: 4,
+    stop_loss_percent: 2
+  });
+  const [submitting, setSubmitting] = useState(false);
   
   const fetchDecisions = async () => {
     try {
