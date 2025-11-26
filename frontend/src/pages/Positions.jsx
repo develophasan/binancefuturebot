@@ -31,7 +31,7 @@ const Positions = () => {
   
   useEffect(() => {
     fetchPositions();
-    const interval = setInterval(fetchPositions, 15000); // 15 saniyede bir güncelle
+    const interval = setInterval(fetchPositions, 3000); // 3 saniyede bir güncelle (gerçek zamanlı)
     return () => clearInterval(interval);
   }, []);
   
