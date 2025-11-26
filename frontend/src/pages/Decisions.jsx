@@ -204,6 +204,18 @@ const Decisions = () => {
                         </div>
                       </div>
                     </div>
+                    
+                    {/* Manuel Giriş Butonu */}
+                    <div className="ml-4">
+                      <Button
+                        onClick={() => openManualTradeModal(decisionLog)}
+                        className="bg-cyan-500 hover:bg-cyan-600 text-white"
+                        size="sm"
+                      >
+                        <Play className="w-4 h-4 mr-2" />
+                        Manuel Gir
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
