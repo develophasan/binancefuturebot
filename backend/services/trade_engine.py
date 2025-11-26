@@ -178,13 +178,13 @@ class TradeEngine:
             
             position_size_usdt = position_params.get('position_size_value', settings.position_size_value)
             
-            # Calculate TP and SL with AI recommendations (or defaults)
-            tp_percent = risk_params.get('target_profit_percent', 1.5)  # Default 1.5% TP
-            sl_percent = risk_params.get('stop_loss_percent', 0.4)  # Default 0.4% SL
+            # Calculate TP and SL with AI recommendations (or aggressive defaults)
+            tp_percent = risk_params.get('target_profit_percent', 4.0)  # Default 4% TP (agresif)
+            sl_percent = risk_params.get('stop_loss_percent', 2.0)  # Default 2% SL (agresif)
             
-            # Ensure minimum Risk/Reward ratio of 2:1
-            if tp_percent / sl_percent < 2.0:
-                tp_percent = sl_percent * 2.5  # Force 2.5:1 R/R minimum
+            # Ensure minimum Risk/Reward ratio of 1.5:1 (agresif)
+            if tp_percent / sl_percent < 1.5:
+                tp_percent = sl_percent * 1.8  # Force 1.8:1 R/R minimum (agresif)
             
             raw_tp_price = current_price * (1 + tp_percent / 100)
             raw_sl_price = current_price * (1 - sl_percent / 100)
