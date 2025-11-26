@@ -111,53 +111,47 @@ class BinanceService:
             return {"open_interest": 0.0, "change_24h_percent": 0.0}
     
     async def get_top_gainers(self, limit: int = 10) -> List[Dict[str, Any]]:
-        """Get top gaining symbols in 24h - trying multiple sources"""
-        sources = [
-            "https://api.binance.com/api/v3/ticker/24hr",
-            "https://data.binance.vision/api/v3/ticker/24hr",
-            "https://api1.binance.com/api/v3/ticker/24hr",
-            "https://api2.binance.com/api/v3/ticker/24hr"
-        ]
+        """Get top gaining symbols in 24h from Binance Testnet"""
+        url = f"{self.spot_base_url}/v3/ticker/24hr"
         
-        for url in sources:
-            try:
-                async with aiohttp.ClientSession() as session:
-                    async with session.get(url, timeout=aiohttp.ClientTimeout(total=10)) as response:
-                        if response.status == 200:
-                            tickers = await response.json()
-                            
-                            # Filter valid USDT pairs and sort by price change
-                            usdt_pairs = []
-                            for ticker in tickers:
-                                symbol = ticker.get('symbol', '')
-                                if symbol.endswith('USDT'):
-                                    try:
-                                        price_change = float(ticker.get('priceChangePercent', 0))
-                                        volume = float(ticker.get('quoteVolume', 0))
-                                        price = float(ticker.get('lastPrice', 0))
-                                        
-                                        if price_change > 0 and volume > 1000000:  # Min volume filter
-                                            usdt_pairs.append({
-                                                "symbol": symbol,
-                                                "price_change_percent": price_change,
-                                                "volume_24h": volume,
-                                                "price": price
-                                            })
-                                    except:
-                                        continue
-                            
-                            # Sort by price change descending
-                            usdt_pairs.sort(key=lambda x: x['price_change_percent'], reverse=True)
-                            
-                            logger.info(f"Successfully fetched {len(usdt_pairs)} top gainers")
-                            return usdt_pairs[:limit]
-            except Exception as e:
-                logger.warning(f"Failed to fetch top gainers from {url}: {e}")
-                continue
-        
-        # If all sources fail, use mock data
-        logger.warning("All data sources failed for top gainers, using mock data")
-        return self._mock_top_gainers(limit)
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url, timeout=aiohttp.ClientTimeout(total=15)) as response:
+                    if response.status == 200:
+                        tickers = await response.json()
+                        
+                        # Filter valid USDT pairs and sort by price change
+                        usdt_pairs = []
+                        for ticker in tickers:
+                            symbol = ticker.get('symbol', '')
+                            if symbol.endswith('USDT'):
+                                try:
+                                    price_change = float(ticker.get('priceChangePercent', 0))
+                                    volume = float(ticker.get('quoteVolume', 0))
+                                    price = float(ticker.get('lastPrice', 0))
+                                    
+                                    if price_change > 0 and volume > 100000:  # Lower volume filter for testnet
+                                        usdt_pairs.append({
+                                            "symbol": symbol,
+                                            "price_change_percent": price_change,
+                                            "volume_24h": volume,
+                                            "price": price
+                                        })
+                                except:
+                                    continue
+                        
+                        # Sort by price change descending
+                        usdt_pairs.sort(key=lambda x: x['price_change_percent'], reverse=True)
+                        
+                        logger.info(f"✅ Successfully fetched {len(usdt_pairs)} REAL top gainers from Binance Testnet")
+                        return usdt_pairs[:limit]
+                    else:
+                        error_text = await response.text()
+                        logger.error(f"❌ Error fetching top gainers: {response.status} - {error_text}")
+                        return self._mock_top_gainers(limit)
+        except Exception as e:
+            logger.error(f"❌ Error fetching top gainers: {e}")
+            return self._mock_top_gainers(limit)
     
     async def place_market_order(
         self,
