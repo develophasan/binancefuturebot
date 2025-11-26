@@ -179,7 +179,23 @@ class TradeEngine:
             tp_price = current_price * (1 + tp_percent / 100)
             sl_price = current_price * (1 - sl_percent / 100)
             
-            quantity = (position_size_usdt * leverage) / current_price
+            # Calculate quantity and round to proper precision
+            raw_quantity = (position_size_usdt * leverage) / current_price
+            
+            # Round to 3 decimal places (works for most futures contracts)
+            # BTC/ETH typically need 3 decimals, altcoins may need more
+            if current_price > 1000:  # BTC-like
+                quantity = round(raw_quantity, 3)
+            elif current_price > 100:  # ETH-like
+                quantity = round(raw_quantity, 2)
+            elif current_price > 1:  # Mid-range
+                quantity = round(raw_quantity, 1)
+            else:  # Low price coins
+                quantity = round(raw_quantity, 0)
+            
+            # Ensure minimum quantity
+            if quantity <= 0:
+                quantity = 0.001 if current_price > 1000 else 1
             
             # Set leverage
             await self.binance.set_leverage(symbol, leverage)
