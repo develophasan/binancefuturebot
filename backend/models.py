@@ -45,11 +45,11 @@ class UserSettings(BaseModel):
     max_leverage: int = 5
     min_leverage: int = 2
     
-    # Risk parameters
-    target_profit_percent: float = 0.25  # 0.25%
-    stop_loss_percent: float = 0.05  # 0.05%
-    max_risk_per_trade_percent: float = 0.03  # 3% of equity per trade
-    risk_profile: RiskProfile = RiskProfile.CONSERVATIVE
+    # Risk parameters (optimized for profitability)
+    target_profit_percent: float = 1.5  # 1.5% TP
+    stop_loss_percent: float = 0.4  # 0.4% SL (R/R = 3.75:1)
+    max_risk_per_trade_percent: float = 0.02  # 2% of equity per trade
+    risk_profile: RiskProfile = RiskProfile.MODERATE
     
     # Limits
     max_open_positions: int = 3
