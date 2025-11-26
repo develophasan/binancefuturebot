@@ -111,7 +111,7 @@ const Positions = () => {
                 Giriş Fiyatı
               </p>
               <p className="text-sm font-semibold text-white">
-                ${position.entry_price?.toFixed(2)}
+                ${formatPrice(position.entry_price)}
               </p>
             </div>
             {isOpen && currentPrice ? (
@@ -123,7 +123,7 @@ const Positions = () => {
                 <p className={`text-sm font-semibold ${
                   currentPrice >= position.entry_price ? "text-emerald-400" : "text-red-400"
                 }`}>
-                  ${currentPrice?.toFixed(2)}
+                  ${formatPrice(currentPrice)}
                 </p>
               </div>
             ) : position.exit_price && (
@@ -133,7 +133,7 @@ const Positions = () => {
                   Çıkış Fiyatı
                 </p>
                 <p className="text-sm font-semibold text-white">
-                  ${position.exit_price?.toFixed(2)}
+                  ${formatPrice(position.exit_price)}
                 </p>
               </div>
             )}
@@ -143,7 +143,7 @@ const Positions = () => {
                 Take Profit
               </p>
               <p className="text-sm font-semibold text-emerald-400">
-                ${position.take_profit_price?.toFixed(2)}
+                ${formatPrice(position.take_profit_price)}
               </p>
             </div>
             <div>
@@ -152,7 +152,7 @@ const Positions = () => {
                 Stop Loss
               </p>
               <p className="text-sm font-semibold text-red-400">
-                ${position.stop_loss_price?.toFixed(2)}
+                ${formatPrice(position.stop_loss_price)}
               </p>
             </div>
           </div>
