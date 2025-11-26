@@ -172,12 +172,26 @@ class TradeEngine:
             
             position_size_usdt = position_params.get('position_size_value', settings.position_size_value)
             
-            # Calculate TP and SL
+            # Calculate TP and SL with proper precision
             tp_percent = risk_params.get('target_profit_percent', settings.target_profit_percent)
             sl_percent = risk_params.get('stop_loss_percent', settings.stop_loss_percent)
             
-            tp_price = current_price * (1 + tp_percent / 100)
-            sl_price = current_price * (1 - sl_percent / 100)
+            raw_tp_price = current_price * (1 + tp_percent / 100)
+            raw_sl_price = current_price * (1 - sl_percent / 100)
+            
+            # Round TP/SL prices based on current price magnitude
+            if current_price >= 1000:  # BTC-like
+                tp_price = round(raw_tp_price, 1)
+                sl_price = round(raw_sl_price, 1)
+            elif current_price >= 100:  # ETH-like
+                tp_price = round(raw_tp_price, 2)
+                sl_price = round(raw_sl_price, 2)
+            elif current_price >= 1:  # Mid-range
+                tp_price = round(raw_tp_price, 3)
+                sl_price = round(raw_sl_price, 3)
+            else:  # Low price coins
+                tp_price = round(raw_tp_price, 6)
+                sl_price = round(raw_sl_price, 6)
             
             # Calculate quantity and round to proper precision
             raw_quantity = (position_size_usdt * leverage) / current_price
