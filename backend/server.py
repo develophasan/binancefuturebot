@@ -160,7 +160,7 @@ async def get_positions(status: str = "OPEN"):
     for pos in positions:
         if isinstance(pos.get('opened_at'), str):
             pos['opened_at'] = datetime.fromisoformat(pos['opened_at'])
-        if pos.get('closed_at') and isinstance(pos['closed_at'), str):
+        if pos.get('closed_at') and isinstance(pos.get('closed_at'), str):
             pos['closed_at'] = datetime.fromisoformat(pos['closed_at'])
         
         # Add real-time PnL for open positions
