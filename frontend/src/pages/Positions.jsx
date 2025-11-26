@@ -48,9 +48,18 @@ const Positions = () => {
   };
   
   const PositionCard = ({ position, isOpen }) => {
-    const pnlPercent = position.realized_pnl_usdt
-      ? (position.realized_pnl_usdt / position.position_size_usdt) * 100
-      : 0;
+    // Use unrealized_pnl for open positions, realized_pnl for closed
+    const pnl = isOpen 
+      ? (position.unrealized_pnl_usdt || 0)
+      : (position.realized_pnl_usdt || 0);
+    
+    const pnlPercent = isOpen
+      ? (position.price_change_percent || 0)
+      : (position.realized_pnl_usdt ? (position.realized_pnl_usdt / position.position_size_usdt) * 100 : 0);
+    
+    const currentPrice = isOpen && position.current_price
+      ? position.current_price
+      : position.exit_price;
     
     return (
       <Card className="bg-black/40 border-white/10 backdrop-blur hover:border-cyan-500/30 transition-all" data-testid={`position-${position.id}`}>
