@@ -259,27 +259,107 @@ class BinanceService:
             logger.error(f"❌ Error fetching FUTURES top gainers: {e}")
             return self._mock_top_gainers(limit)
     
+    async def set_leverage(self, symbol: str, leverage: int) -> bool:
+        """Set leverage for FUTURES symbol"""
+        if not self.has_credentials:
+            logger.info(f"SIMULATED LEVERAGE: {symbol} -> {leverage}x")
+            return True
+        
+        url = f"{self.api_base_url}/fapi/v1/leverage"
+        timestamp = int(datetime.now(timezone.utc).timestamp() * 1000)
+        
+        params = {
+            "symbol": symbol,
+            "leverage": leverage,
+            "timestamp": timestamp
+        }
+        
+        signature = self._sign_request(params)
+        params["signature"] = signature
+        
+        headers = {
+            "X-MBX-APIKEY": self.api_key
+        }
+        
+        proxy = self._get_next_proxy()
+        
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    url,
+                    data=params,
+                    headers=headers,
+                    proxy=proxy,
+                    timeout=aiohttp.ClientTimeout(total=10)
+                ) as response:
+                    if response.status == 200:
+                        logger.info(f"✅ Set FUTURES leverage: {symbol} -> {leverage}x")
+                        return True
+                    else:
+                        error_text = await response.text()
+                        logger.error(f"❌ Leverage error: {error_text[:100]}")
+                        return False
+        except Exception as e:
+            logger.error(f"❌ Error setting leverage: {e}")
+            return False
+    
     async def place_market_order(
         self,
         symbol: str,
         side: str,
         quantity: float
     ) -> Optional[Dict[str, Any]]:
-        """Place market order (simulated)"""
-        # Return simulated order for testnet
-        logger.info(f"SIMULATED ORDER: {side} {quantity} {symbol}")
-        return {
-            "orderId": f"sim_order_{int(datetime.now(timezone.utc).timestamp())}",
+        """Place FUTURES market order"""
+        if not self.has_credentials:
+            logger.info(f"SIMULATED FUTURES ORDER: {side} {quantity} {symbol}")
+            return {
+                "orderId": f"sim_order_{int(datetime.now(timezone.utc).timestamp())}",
+                "symbol": symbol,
+                "status": "FILLED",
+                "executedQty": quantity,
+                "side": side
+            }
+        
+        url = f"{self.api_base_url}/fapi/v1/order"
+        timestamp = int(datetime.now(timezone.utc).timestamp() * 1000)
+        
+        params = {
             "symbol": symbol,
-            "status": "FILLED",
-            "executedQty": quantity,
-            "side": side
+            "side": side,
+            "type": "MARKET",
+            "quantity": quantity,
+            "timestamp": timestamp
         }
-    
-    async def set_leverage(self, symbol: str, leverage: int) -> bool:
-        """Set leverage for symbol (simulated)"""
-        logger.info(f"SIMULATED LEVERAGE: {symbol} -> {leverage}x")
-        return True
+        
+        signature = self._sign_request(params)
+        params["signature"] = signature
+        
+        headers = {
+            "X-MBX-APIKEY": self.api_key
+        }
+        
+        proxy = self._get_next_proxy()
+        
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    url,
+                    data=params,
+                    headers=headers,
+                    proxy=proxy,
+                    timeout=aiohttp.ClientTimeout(total=10)
+                ) as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        logger.info(f"✅ FUTURES order placed: {side} {quantity} {symbol}")
+                        return data
+                    else:
+                        error_text = await response.text()
+                        logger.error(f"❌ Order error: {error_text[:100]}")
+                        return None
+        except Exception as e:
+            logger.error(f"❌ Error placing order: {e}")
+            return None
     
     async def place_stop_market_order(
         self,
@@ -288,13 +368,52 @@ class BinanceService:
         quantity: float,
         stop_price: float
     ) -> Optional[Dict[str, Any]]:
-        """Place stop-loss order (simulated)"""
-        logger.info(f"SIMULATED SL ORDER: {side} {quantity} {symbol} @ {stop_price}")
-        return {
-            "orderId": f"sim_sl_order_{int(datetime.now(timezone.utc).timestamp())}",
+        """Place FUTURES stop-loss order"""
+        if not self.has_credentials:
+            logger.info(f"SIMULATED SL: {side} {quantity} {symbol} @ {stop_price}")
+            return {"orderId": f"sim_sl_{int(datetime.now(timezone.utc).timestamp())}"}
+        
+        url = f"{self.api_base_url}/fapi/v1/order"
+        timestamp = int(datetime.now(timezone.utc).timestamp() * 1000)
+        
+        params = {
             "symbol": symbol,
-            "stopPrice": stop_price
+            "side": side,
+            "type": "STOP_MARKET",
+            "quantity": quantity,
+            "stopPrice": stop_price,
+            "timestamp": timestamp
         }
+        
+        signature = self._sign_request(params)
+        params["signature"] = signature
+        
+        headers = {
+            "X-MBX-APIKEY": self.api_key
+        }
+        
+        proxy = self._get_next_proxy()
+        
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    url,
+                    data=params,
+                    headers=headers,
+                    proxy=proxy,
+                    timeout=aiohttp.ClientTimeout(total=10)
+                ) as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        logger.info(f"✅ FUTURES SL placed: {symbol} @ {stop_price}")
+                        return data
+                    else:
+                        error_text = await response.text()
+                        logger.error(f"❌ SL order error: {error_text[:100]}")
+                        return None
+        except Exception as e:
+            logger.error(f"❌ Error placing SL: {e}")
+            return None
     
     async def place_take_profit_market_order(
         self,
@@ -303,13 +422,52 @@ class BinanceService:
         quantity: float,
         stop_price: float
     ) -> Optional[Dict[str, Any]]:
-        """Place take-profit order (simulated)"""
-        logger.info(f"SIMULATED TP ORDER: {side} {quantity} {symbol} @ {stop_price}")
-        return {
-            "orderId": f"sim_tp_order_{int(datetime.now(timezone.utc).timestamp())}",
+        """Place FUTURES take-profit order"""
+        if not self.has_credentials:
+            logger.info(f"SIMULATED TP: {side} {quantity} {symbol} @ {stop_price}")
+            return {"orderId": f"sim_tp_{int(datetime.now(timezone.utc).timestamp())}"}
+        
+        url = f"{self.api_base_url}/fapi/v1/order"
+        timestamp = int(datetime.now(timezone.utc).timestamp() * 1000)
+        
+        params = {
             "symbol": symbol,
-            "stopPrice": stop_price
+            "side": side,
+            "type": "TAKE_PROFIT_MARKET",
+            "quantity": quantity,
+            "stopPrice": stop_price,
+            "timestamp": timestamp
         }
+        
+        signature = self._sign_request(params)
+        params["signature"] = signature
+        
+        headers = {
+            "X-MBX-APIKEY": self.api_key
+        }
+        
+        proxy = self._get_next_proxy()
+        
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    url,
+                    data=params,
+                    headers=headers,
+                    proxy=proxy,
+                    timeout=aiohttp.ClientTimeout(total=10)
+                ) as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        logger.info(f"✅ FUTURES TP placed: {symbol} @ {stop_price}")
+                        return data
+                    else:
+                        error_text = await response.text()
+                        logger.error(f"❌ TP order error: {error_text[:100]}")
+                        return None
+        except Exception as e:
+            logger.error(f"❌ Error placing TP: {e}")
+            return None
     
     def _mock_candles(self, symbol: str, limit: int) -> List[Dict[str, Any]]:
         """Generate mock candle data"""
