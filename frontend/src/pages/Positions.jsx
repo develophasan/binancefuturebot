@@ -105,7 +105,19 @@ const Positions = () => {
                 ${position.entry_price?.toFixed(2)}
               </p>
             </div>
-            {position.exit_price && (
+            {isOpen && currentPrice ? (
+              <div>
+                <p className="text-xs text-gray-400 flex items-center gap-1">
+                  <DollarSign className="w-3 h-3" />
+                  Anlık Fiyat
+                </p>
+                <p className={`text-sm font-semibold ${
+                  currentPrice >= position.entry_price ? "text-emerald-400" : "text-red-400"
+                }`}>
+                  ${currentPrice?.toFixed(2)}
+                </p>
+              </div>
+            ) : position.exit_price && (
               <div>
                 <p className="text-xs text-gray-400 flex items-center gap-1">
                   <DollarSign className="w-3 h-3" />
