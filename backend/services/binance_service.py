@@ -2,8 +2,11 @@ import os
 import asyncio
 from typing import List, Dict, Any, Optional
 import aiohttp
+import hmac
+import hashlib
 import logging
 from datetime import datetime, timezone
+from urllib.parse import urlencode
 
 logger = logging.getLogger(__name__)
 
@@ -12,25 +15,30 @@ class BinanceService:
     def __init__(self, testnet: bool = True):
         self.testnet = testnet
         
-        # Use public API endpoints (no authentication required for market data)
+        # Use correct Binance Testnet endpoints
         if testnet:
-            self.base_url = "https://testnet.binancefuture.com/fapi/v1"
-            self.public_base_url = "https://fapi.binance.com/fapi/v1"  # Public data from mainnet
+            # Spot Testnet for market data (public)
+            self.spot_base_url = "https://testnet.binance.vision/api"
+            # We'll use Spot data since Futures testnet requires different setup
+            self.api_base_url = "https://testnet.binance.vision/api"
         else:
-            self.base_url = "https://fapi.binance.com/fapi/v1"
-            self.public_base_url = "https://fapi.binance.com/fapi/v1"
+            self.spot_base_url = "https://api.binance.com/api"
+            self.api_base_url = "https://api.binance.com/api"
         
-        # For authenticated operations
+        # Get API credentials
         api_key = os.getenv("BINANCE_TESTNET_API_KEY", "") if testnet else os.getenv("BINANCE_API_KEY", "")
         api_secret = os.getenv("BINANCE_TESTNET_SECRET_KEY", "") if testnet else os.getenv("BINANCE_SECRET_KEY", "")
         
         self.api_key = api_key
         self.api_secret = api_secret
+        self.has_credentials = bool(api_key and api_secret)
         
-        # Use public data mode (no authentication needed for market data)
+        if self.has_credentials:
+            logger.info(f"Binance service initialized with Testnet API credentials")
+        else:
+            logger.warning("No API credentials found, using public data only")
+        
         self.mock_mode = False
-        self.public_data_mode = True
-        logger.info(f"Binance service initialized with public data API")
     
     async def get_candles(self, symbol: str, interval: str = "5m", limit: int = 100) -> List[Dict[str, Any]]:
         """Fetch OHLCV candles - using alternative API sources"""
