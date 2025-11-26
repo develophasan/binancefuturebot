@@ -16,13 +16,15 @@ class BinanceService:
     def __init__(self, testnet: bool = True):
         self.testnet = testnet
         
-        # Direct Binance endpoints
+        # Binance FUTURES endpoints
         if testnet:
-            self.spot_base_url = "https://testnet.binance.vision/api"
-            self.api_base_url = "https://testnet.binance.vision/api"
+            # Futures Testnet
+            self.futures_base_url = "https://testnet.binancefuture.com"
+            self.api_base_url = "https://testnet.binancefuture.com"
         else:
-            self.spot_base_url = "https://api.binance.com/api"
-            self.api_base_url = "https://api.binance.com/api"
+            # Futures Mainnet
+            self.futures_base_url = "https://fapi.binance.com"
+            self.api_base_url = "https://fapi.binance.com"
         
         # Get API credentials
         api_key = os.getenv("BINANCE_TESTNET_API_KEY", "") if testnet else os.getenv("BINANCE_API_KEY", "")
