@@ -149,8 +149,8 @@ class TradeEngine:
         # Log decision
         await self._log_decision(symbol, decision, decision_input)
         
-        # Execute if needed (lowered threshold for testnet)
-        if decision.action == TradeAction.OPEN_LONG and decision.confidence >= 0.3:
+        # Execute if needed (professional threshold for profitability)
+        if decision.action == TradeAction.OPEN_LONG and decision.confidence >= 0.55:
             if risk_state['trading_allowed']:
                 await self._execute_long(symbol, decision, settings, candles[-1]['close'])
             else:
