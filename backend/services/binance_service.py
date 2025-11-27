@@ -281,7 +281,7 @@ class BinanceService:
             logger.info(f"SIMULATED LEVERAGE: {symbol} -> {leverage}x")
             return True
         
-        url = f"{self.api_base_url}/fapi/v1/leverage"
+        url = f"{self.futures_base_url}/fapi/v1/leverage"
         timestamp = int(datetime.now(timezone.utc).timestamp() * 1000)
         
         params = {
