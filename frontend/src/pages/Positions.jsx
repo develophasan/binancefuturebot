@@ -67,6 +67,31 @@ const Positions = () => {
     }
   };
   
+  const handleCloseSinglePosition = async () => {
+    if (!selectedPosition) return;
+    
+    setClosingSingle(true);
+    try {
+      const response = await axios.post(`${API}/positions/${selectedPosition.id}/close`);
+      toast.success(response.data.message || "Pozisyon kapatıldı!");
+      
+      // Refresh positions
+      await fetchPositions();
+      setCloseSingleDialogOpen(false);
+      setSelectedPosition(null);
+    } catch (error) {
+      console.error("Error closing position:", error);
+      toast.error(error.response?.data?.detail || "Pozisyon kapatılırken hata oluştu");
+    } finally {
+      setClosingSingle(false);
+    }
+  };
+  
+  const openCloseSingleDialog = (position) => {
+    setSelectedPosition(position);
+    setCloseSingleDialogOpen(true);
+  };
+  
   useEffect(() => {
     fetchPositions();
     // Her 500ms'de bir güncelle (WebSocket destekli ultra hızlı)
