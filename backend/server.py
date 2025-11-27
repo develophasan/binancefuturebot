@@ -196,6 +196,101 @@ async def get_position(position_id: str):
     
     return Position(**position)
 
+@api_router.post("/positions/close-all")
+async def close_all_positions():
+    """Close all open positions at market price"""
+    try:
+        # Get all open positions
+        open_positions = await db.positions.find({
+            "user_id": "default_user",
+            "status": TradeStatus.OPEN.value
+        }, {"_id": 0}).to_list(1000)
+        
+        if not open_positions:
+            return {
+                "success": True,
+                "message": "Kapatılacak açık pozisyon yok",
+                "closed_count": 0
+            }
+        
+        closed_count = 0
+        errors = []
+        
+        for position in open_positions:
+            try:
+                symbol = position['symbol']
+                quantity = position['quantity']
+                entry_price = position['entry_price']
+                
+                # Get current price
+                ticker = await binance_service.get_ticker(symbol)
+                if not ticker:
+                    errors.append(f"{symbol}: Fiyat alınamadı")
+                    continue
+                
+                exit_price = float(ticker['price'])
+                
+                # Cancel TP and SL orders
+                try:
+                    if position.get('tp_order_id'):
+                        await binance_service.cancel_order(symbol, position['tp_order_id'])
+                    if position.get('sl_order_id'):
+                        await binance_service.cancel_order(symbol, position['sl_order_id'])
+                except Exception as e:
+                    logger.warning(f"Failed to cancel orders for {symbol}: {e}")
+                
+                # Close position with market order
+                close_order = await binance_service.place_market_order(
+                    symbol=symbol,
+                    side="SELL",
+                    quantity=quantity
+                )
+                
+                if not close_order:
+                    errors.append(f"{symbol}: Pozisyon kapatılamadı")
+                    continue
+                
+                # Calculate realized PnL
+                price_diff = exit_price - entry_price
+                leverage = position.get('leverage', 1)
+                realized_pnl = (price_diff / entry_price) * position['position_size_usdt'] * leverage
+                
+                # Update position in database
+                await db.positions.update_one(
+                    {"id": position['id']},
+                    {
+                        "$set": {
+                            "status": TradeStatus.CLOSED.value,
+                            "exit_price": exit_price,
+                            "realized_pnl_usdt": realized_pnl,
+                            "closed_at": datetime.now(timezone.utc).isoformat()
+                        }
+                    }
+                )
+                
+                closed_count += 1
+                logger.info(f"✅ Closed {symbol}: PnL ${realized_pnl:.2f}")
+                
+            except Exception as e:
+                errors.append(f"{position['symbol']}: {str(e)}")
+                logger.error(f"Error closing {position['symbol']}: {e}")
+        
+        message = f"{closed_count} pozisyon başarıyla kapatıldı"
+        if errors:
+            message += f". {len(errors)} hata: {', '.join(errors[:3])}"
+        
+        return {
+            "success": True,
+            "message": message,
+            "closed_count": closed_count,
+            "errors": errors
+        }
+        
+    except Exception as e:
+        logger.error(f"Error closing all positions: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @api_router.post("/positions/manual")
 async def open_manual_position(request: ManualTradeRequest):
     """Open a manual position with custom parameters"""
