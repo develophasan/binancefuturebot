@@ -23,6 +23,10 @@ class PositionMonitor:
         # Register price callback
         self.price_feed.add_price_callback(self._on_price_update)
     
+    def _on_price_update(self, symbol: str, price: float):
+        """Callback when price updates from WebSocket"""
+        self.current_prices[symbol] = price
+    
     async def start(self):
         """Start position monitoring"""
         if self.is_running:
