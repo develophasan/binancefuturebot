@@ -336,7 +336,7 @@ class BinanceService:
                 "side": side
             }
         
-        url = f"{self.api_base_url}/fapi/v1/order"
+        url = f"{self.futures_base_url}/fapi/v1/order"
         timestamp = int(datetime.now(timezone.utc).timestamp() * 1000)
         
         params = {
@@ -389,7 +389,7 @@ class BinanceService:
             logger.info(f"SIMULATED SL: {side} {quantity} {symbol} @ {stop_price}")
             return {"orderId": f"sim_sl_{int(datetime.now(timezone.utc).timestamp())}"}
         
-        url = f"{self.api_base_url}/fapi/v1/order"
+        url = f"{self.futures_base_url}/fapi/v1/order"
         timestamp = int(datetime.now(timezone.utc).timestamp() * 1000)
         
         params = {
@@ -443,7 +443,7 @@ class BinanceService:
             logger.info(f"SIMULATED TP: {side} {quantity} {symbol} @ {stop_price}")
             return {"orderId": f"sim_tp_{int(datetime.now(timezone.utc).timestamp())}"}
         
-        url = f"{self.api_base_url}/fapi/v1/order"
+        url = f"{self.futures_base_url}/fapi/v1/order"
         timestamp = int(datetime.now(timezone.utc).timestamp() * 1000)
         
         params = {
