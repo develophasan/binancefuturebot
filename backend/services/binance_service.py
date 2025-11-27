@@ -13,13 +13,18 @@ logger = logging.getLogger(__name__)
 
 
 class BinanceService:
-    def __init__(self, testnet: bool = True):
+    def __init__(self, testnet: bool = None):
+        # .env'den oku, yoksa default True (testnet - güvenli)
+        if testnet is None:
+            testnet = os.environ.get('BINANCE_USE_TESTNET', 'true').lower() == 'true'
+        
         self.testnet = testnet
         
         # Binance FUTURES endpoints
         if testnet:
             # Futures Testnet
             self.futures_base_url = "https://testnet.binancefuture.com"
+            logger.info("🧪 TESTNET MODE - Using testnet.binancefuture.com")
             self.api_base_url = "https://testnet.binancefuture.com"
         else:
             # Futures Mainnet
