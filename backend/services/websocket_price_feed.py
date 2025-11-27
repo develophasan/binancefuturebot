@@ -72,8 +72,8 @@ class BinanceWebSocketPriceFeed:
             except Exception as e:
                 logger.error(f"WebSocket error: {e}")
                 if self.is_running:
-                    logger.info("🔄 Reconnecting in 5 seconds...")
-                    await asyncio.sleep(5)
+                    logger.info("🔄 Reconnecting in 2 seconds...")
+                    await asyncio.sleep(2)
     
     async def _stream_prices(self):
         """Connect to WebSocket and stream prices"""
