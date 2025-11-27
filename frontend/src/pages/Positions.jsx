@@ -286,7 +286,7 @@ const Positions = () => {
               Tüm Pozisyonları Kapat?
             </AlertDialogTitle>
             <AlertDialogDescription className="text-gray-300">
-              <span className="text-white font-semibold">{positions.length} adet</span> açık pozisyon market fiyatından kapatılacak. 
+              <span className="text-white font-semibold">{openPositions.length} adet</span> açık pozisyon market fiyatından kapatılacak. 
               Bu işlem geri alınamaz!
               <div className="mt-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
                 <p className="text-sm text-red-300">
