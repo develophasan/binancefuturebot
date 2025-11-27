@@ -276,6 +276,42 @@ const Positions = () => {
           )}
         </TabsContent>
       </Tabs>
+      
+      {/* Close All Confirmation Dialog */}
+      <AlertDialog open={closeAllDialogOpen} onOpenChange={setCloseAllDialogOpen}>
+        <AlertDialogContent className="bg-[#0a0e27] border-white/10">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-xl font-bold text-red-400 flex items-center gap-2">
+              <XCircle className="w-6 h-6" />
+              Tüm Pozisyonları Kapat?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-300">
+              <span className="text-white font-semibold">{positions.length} adet</span> açık pozisyon market fiyatından kapatılacak. 
+              Bu işlem geri alınamaz!
+              <div className="mt-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
+                <p className="text-sm text-red-300">
+                  ⚠️ TP/SL orderları iptal edilecek ve pozisyonlar mevcut fiyattan kapatılacak.
+                </p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel 
+              className="border-white/20 text-white hover:bg-white/10"
+              disabled={closingAll}
+            >
+              İptal
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleCloseAllPositions}
+              disabled={closingAll}
+              className="bg-red-500 hover:bg-red-600 text-white"
+            >
+              {closingAll ? "Kapatılıyor..." : "Evet, Tümünü Kapat"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
