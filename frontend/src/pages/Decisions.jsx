@@ -168,12 +168,12 @@ const Decisions = () => {
                         {/* Desktop'ta boş - mobilde yukarıda */}
                       </div>
                         
-                        <p className="text-sm text-gray-300 mb-3">{decision.reason}</p>
+                        <p className="text-xs sm:text-sm text-gray-300 mb-2 sm:mb-3 leading-relaxed">{decision.reason}</p>
                         
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
                           <div>
-                            <p className="text-xs text-gray-500">Güven Skoru</p>
-                            <p className="text-sm font-semibold text-white">
+                            <p className="text-[10px] sm:text-xs text-gray-500">Güven Skoru</p>
+                            <p className="text-sm sm:text-base font-semibold text-white">
                               {(decision.confidence * 100).toFixed(0)}%
                             </p>
                           </div>
@@ -181,14 +181,14 @@ const Decisions = () => {
                           {decision.position && (
                             <>
                               <div>
-                                <p className="text-xs text-gray-500">Kaldıraç</p>
-                                <p className="text-sm font-semibold text-cyan-400">
+                                <p className="text-[10px] sm:text-xs text-gray-500">Kaldıraç</p>
+                                <p className="text-sm sm:text-base font-semibold text-cyan-400">
                                   {decision.position.leverage}x
                                 </p>
                               </div>
                               <div>
-                                <p className="text-xs text-gray-500">Pozisyon</p>
-                                <p className="text-sm font-semibold text-white">
+                                <p className="text-[10px] sm:text-xs text-gray-500">Pozisyon</p>
+                                <p className="text-sm sm:text-base font-semibold text-white">
                                   ${decision.position.position_size_value}
                                 </p>
                               </div>
@@ -197,7 +197,7 @@ const Decisions = () => {
                           
                           {decision.risk && (
                             <div>
-                              <p className="text-xs text-gray-500">TP / SL</p>
+                              <p className="text-[10px] sm:text-xs text-gray-500">TP / SL</p>
                               <p className="text-sm font-semibold text-white">
                                 {decision.risk.target_profit_percent}% / {decision.risk.stop_loss_percent}%
                               </p>
