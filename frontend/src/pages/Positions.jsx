@@ -293,13 +293,13 @@ const Positions = () => {
   }
   
   return (
-    <div className="space-y-6" data-testid="positions-page">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <TrendingUp className="w-8 h-8 text-cyan-400" />
-          <div>
-            <h1 className="text-2xl font-bold text-white">Pozisyonlar</h1>
-            <p className="text-sm text-gray-400">Açık ve kapalı pozisyonlarınızı görüntüleyin</p>
+    <div className="space-y-4 sm:space-y-6 p-2 sm:p-0" data-testid="positions-page">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+          <TrendingUp className="w-6 h-6 sm:w-8 sm:h-8 text-cyan-400 flex-shrink-0" />
+          <div className="min-w-0">
+            <h1 className="text-lg sm:text-2xl font-bold text-white truncate">Pozisyonlar</h1>
+            <p className="text-xs sm:text-sm text-gray-400 truncate hidden sm:block">Açık ve kapalı pozisyonlarınızı görüntüleyin</p>
           </div>
         </div>
         
