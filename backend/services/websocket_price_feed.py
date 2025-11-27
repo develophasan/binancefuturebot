@@ -79,7 +79,7 @@ class BinanceWebSocketPriceFeed:
         """Connect to WebSocket and stream prices"""
         if not self.subscribed_symbols:
             logger.warning("No symbols subscribed, waiting...")
-            await asyncio.sleep(5)
+            await asyncio.sleep(3)
             return
         
         # Create stream URL for all subscribed symbols
@@ -87,7 +87,7 @@ class BinanceWebSocketPriceFeed:
         streams = [f"{symbol}@miniTicker" for symbol in self.subscribed_symbols]
         stream_url = f"{self.ws_base_url}/stream?streams={'/'.join(streams)}"
         
-        logger.info(f"📡 Connecting to WebSocket: {len(self.subscribed_symbols)} symbols")
+        logger.info(f"📡 Connecting to WebSocket: {len(self.subscribed_symbols)} symbols: {list(self.subscribed_symbols)}")
         
         try:
             async with websockets.connect(stream_url, ping_interval=20) as websocket:
