@@ -101,12 +101,12 @@ const Decisions = () => {
   }
   
   return (
-    <div className="space-y-6" data-testid="decisions-page">
-      <div className="flex items-center gap-3">
-        <Brain className="w-8 h-8 text-cyan-400" />
-        <div>
-          <h1 className="text-2xl font-bold text-white">AI Kararları</h1>
-          <p className="text-sm text-gray-400">Yapay zeka tarafından verilen ticaret kararları</p>
+    <div className="space-y-4 sm:space-y-6 p-2 sm:p-0" data-testid="decisions-page">
+      <div className="flex items-center gap-2 sm:gap-3">
+        <Brain className="w-6 h-6 sm:w-8 sm:h-8 text-cyan-400 flex-shrink-0" />
+        <div className="min-w-0">
+          <h1 className="text-lg sm:text-2xl font-bold text-white truncate">AI Kararları</h1>
+          <p className="text-xs sm:text-sm text-gray-400 truncate">Yapay zeka ticaret kararları</p>
         </div>
       </div>
       
