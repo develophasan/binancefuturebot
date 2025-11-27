@@ -6,7 +6,7 @@ import os
 import logging
 from pathlib import Path
 from typing import List
-from datetime import datetime
+from datetime import datetime, timezone
 
 from models import (
     UserSettings, UserSettingsUpdate, Position, Trade,
