@@ -196,6 +196,83 @@ async def get_position(position_id: str):
     
     return Position(**position)
 
+@api_router.post("/positions/{position_id}/close")
+async def close_position(position_id: str):
+    """Close a specific position at market price"""
+    try:
+        # Get position
+        position = await db.positions.find_one({
+            "id": position_id,
+            "status": TradeStatus.OPEN.value
+        }, {"_id": 0})
+        
+        if not position:
+            raise HTTPException(status_code=404, detail="Pozisyon bulunamadı veya zaten kapalı")
+        
+        symbol = position['symbol']
+        quantity = position['quantity']
+        entry_price = position['entry_price']
+        
+        # Get current price
+        ticker = await binance_service.get_ticker(symbol)
+        if not ticker:
+            raise HTTPException(status_code=400, detail=f"{symbol} için fiyat alınamadı")
+        
+        exit_price = float(ticker['price'])
+        
+        # Cancel TP and SL orders
+        try:
+            if position.get('tp_order_id'):
+                await binance_service.cancel_order(symbol, position['tp_order_id'])
+            if position.get('sl_order_id'):
+                await binance_service.cancel_order(symbol, position['sl_order_id'])
+        except Exception as e:
+            logger.warning(f"Failed to cancel orders for {symbol}: {e}")
+        
+        # Close position with market order
+        close_order = await binance_service.place_market_order(
+            symbol=symbol,
+            side="SELL",
+            quantity=quantity
+        )
+        
+        if not close_order:
+            raise HTTPException(status_code=500, detail="Pozisyon kapatılamadı")
+        
+        # Calculate realized PnL
+        price_diff = exit_price - entry_price
+        leverage = position.get('leverage', 1)
+        realized_pnl = (price_diff / entry_price) * position['position_size_usdt'] * leverage
+        
+        # Update position in database
+        await db.positions.update_one(
+            {"id": position_id},
+            {
+                "$set": {
+                    "status": TradeStatus.CLOSED.value,
+                    "exit_price": exit_price,
+                    "realized_pnl_usdt": realized_pnl,
+                    "closed_at": datetime.now(timezone.utc).isoformat()
+                }
+            }
+        )
+        
+        logger.info(f"✅ Closed {symbol}: PnL ${realized_pnl:.2f}")
+        
+        return {
+            "success": True,
+            "message": f"{symbol} pozisyonu başarıyla kapatıldı",
+            "realized_pnl": realized_pnl,
+            "exit_price": exit_price
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error closing position {position_id}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @api_router.post("/positions/close-all")
 async def close_all_positions():
     """Close all open positions at market price"""
