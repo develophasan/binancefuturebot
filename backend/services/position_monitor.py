@@ -78,9 +78,25 @@ class PositionMonitor:
             for symbol in symbols:
                 self.price_feed.subscribe_symbol(symbol)
             
-            # Prices are updated in real-time via WebSocket callback
-            # Just log current state
-            logger.debug(f"📊 Monitoring {len(positions)} positions with WebSocket: {symbols}")
+            # FALLBACK: Check for missing prices and fetch via API
+            missing_symbols = []
+            for symbol in symbols:
+                if symbol not in self.current_prices or self.current_prices[symbol] == 0:
+                    missing_symbols.append(symbol)
+            
+            # Fetch missing prices via API
+            if missing_symbols:
+                logger.info(f"⚠️ WebSocket missing prices for {missing_symbols}, fetching via API...")
+                for symbol in missing_symbols:
+                    try:
+                        candles = await self.binance.get_candles(symbol, interval="1m", limit=1)
+                        if candles and len(candles) > 0:
+                            self.current_prices[symbol] = candles[0]['close']
+                            logger.info(f"✅ API fallback: {symbol} = ${candles[0]['close']}")
+                    except Exception as e:
+                        logger.error(f"Failed to fetch price for {symbol}: {e}")
+            
+            logger.debug(f"📊 Monitoring {len(positions)} positions: {symbols}")
             
             # Check each position
             for position in positions:
