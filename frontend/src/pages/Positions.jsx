@@ -210,12 +210,26 @@ const Positions = () => {
   
   return (
     <div className="space-y-6" data-testid="positions-page">
-      <div className="flex items-center gap-3">
-        <TrendingUp className="w-8 h-8 text-cyan-400" />
-        <div>
-          <h1 className="text-2xl font-bold text-white">Pozisyonlar</h1>
-          <p className="text-sm text-gray-400">Açık ve kapalı pozisyonlarınızı görüntüleyin</p>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <TrendingUp className="w-8 h-8 text-cyan-400" />
+          <div>
+            <h1 className="text-2xl font-bold text-white">Pozisyonlar</h1>
+            <p className="text-sm text-gray-400">Açık ve kapalı pozisyonlarınızı görüntüleyin</p>
+          </div>
         </div>
+        
+        {/* Tümünü Kapat Butonu */}
+        {positions.length > 0 && (
+          <Button
+            onClick={() => setCloseAllDialogOpen(true)}
+            variant="destructive"
+            className="bg-red-500 hover:bg-red-600 text-white"
+          >
+            <XCircle className="w-4 h-4 mr-2" />
+            Tümünü Kapat ({positions.length})
+          </Button>
+        )}
       </div>
       
       <Tabs defaultValue="open" className="w-full">
