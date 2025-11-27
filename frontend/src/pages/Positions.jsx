@@ -355,6 +355,65 @@ const Positions = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      
+      {/* Close Single Position Dialog */}
+      <AlertDialog open={closeSingleDialogOpen} onOpenChange={setCloseSingleDialogOpen}>
+        <AlertDialogContent className="bg-[#0a0e27] border-white/10">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-xl font-bold text-orange-400 flex items-center gap-2">
+              <XCircle className="w-6 h-6" />
+              Pozisyonu Kapat?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-300">
+              {selectedPosition && (
+                <>
+                  <div className="mb-3">
+                    <span className="text-white font-semibold text-lg">{selectedPosition.symbol}</span> pozisyonu market fiyatından kapatılacak.
+                  </div>
+                  
+                  <div className="space-y-2 text-sm bg-black/40 p-3 rounded-lg">
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Giriş Fiyatı:</span>
+                      <span className="text-white">${formatPrice(selectedPosition.entry_price)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Güncel PnL:</span>
+                      <span className={selectedPosition.unrealized_pnl_usdt >= 0 ? 'text-emerald-400' : 'text-red-400'}>
+                        ${selectedPosition.unrealized_pnl_usdt?.toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Miktar:</span>
+                      <span className="text-white">{formatPrice(selectedPosition.quantity)}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-3 p-2 bg-orange-500/10 border border-orange-500/30 rounded-lg">
+                    <p className="text-xs text-orange-300">
+                      ⚠️ TP/SL orderları iptal edilecek ve pozisyon mevcut fiyattan kapatılacak.
+                    </p>
+                  </div>
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel 
+              className="border-white/20 text-white hover:bg-white/10"
+              disabled={closingSingle}
+            >
+              İptal
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleCloseSinglePosition}
+              disabled={closingSingle}
+              className="bg-orange-500 hover:bg-orange-600 text-white"
+            >
+              {closingSingle ? "Kapatılıyor..." : "Evet, Kapat"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
