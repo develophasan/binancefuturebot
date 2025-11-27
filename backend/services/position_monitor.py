@@ -13,11 +13,15 @@ logger = logging.getLogger(__name__)
 class PositionMonitor:
     """Monitor open positions and check TP/SL conditions"""
     
-    def __init__(self, db: AsyncIOMotorDatabase):
+    def __init__(self, db: AsyncIOMotorDatabase, binance_service: BinanceService):
         self.db = db
-        self.binance = BinanceService(testnet=True)
+        self.binance = binance_service
+        self.current_prices: Dict[str, float] = {}
         self.is_running = False
-        self.current_prices = {}  # Cache for current prices
+        self.price_feed = get_price_feed(testnet=binance_service.testnet)
+        
+        # Register price callback
+        self.price_feed.add_price_callback(self._on_price_update)
     
     async def start(self):
         """Start position monitoring"""
