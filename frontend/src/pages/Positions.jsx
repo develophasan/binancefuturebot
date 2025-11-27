@@ -308,10 +308,11 @@ const Positions = () => {
           <Button
             onClick={() => setCloseAllDialogOpen(true)}
             variant="destructive"
-            className="bg-red-500 hover:bg-red-600 text-white"
+            className="bg-red-500 hover:bg-red-600 text-white text-xs sm:text-sm h-8 sm:h-10 px-2 sm:px-4 flex-shrink-0 whitespace-nowrap"
           >
-            <XCircle className="w-4 h-4 mr-2" />
-            Tümünü Kapat ({openPositions.length})
+            <XCircle className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-2" />
+            <span className="hidden sm:inline">Tümünü Kapat ({openPositions.length})</span>
+            <span className="sm:hidden ml-1">Kapat ({openPositions.length})</span>
           </Button>
         )}
       </div>
