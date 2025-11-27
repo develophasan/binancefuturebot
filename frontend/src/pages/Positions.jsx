@@ -47,6 +47,23 @@ const Positions = () => {
     }
   };
   
+  const handleCloseAllPositions = async () => {
+    setClosingAll(true);
+    try {
+      const response = await axios.post(`${API}/positions/close-all`);
+      toast.success(response.data.message || "Tüm pozisyonlar kapatıldı!");
+      
+      // Refresh positions
+      await fetchPositions();
+      setCloseAllDialogOpen(false);
+    } catch (error) {
+      console.error("Error closing all positions:", error);
+      toast.error(error.response?.data?.detail || "Pozisyonlar kapatılırken hata oluştu");
+    } finally {
+      setClosingAll(false);
+    }
+  };
+  
   useEffect(() => {
     fetchPositions();
     // Her 500ms'de bir güncelle (WebSocket destekli ultra hızlı)
