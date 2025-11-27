@@ -220,14 +220,14 @@ const Positions = () => {
         </div>
         
         {/* Tümünü Kapat Butonu */}
-        {positions.length > 0 && (
+        {openPositions.length > 0 && (
           <Button
             onClick={() => setCloseAllDialogOpen(true)}
             variant="destructive"
             className="bg-red-500 hover:bg-red-600 text-white"
           >
             <XCircle className="w-4 h-4 mr-2" />
-            Tümünü Kapat ({positions.length})
+            Tümünü Kapat ({openPositions.length})
           </Button>
         )}
       </div>
