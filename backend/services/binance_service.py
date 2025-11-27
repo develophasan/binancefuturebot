@@ -431,6 +431,47 @@ class BinanceService:
             logger.error(f"❌ Error placing SL: {e}")
             return None
     
+    async def cancel_order(self, symbol: str, order_id: str) -> bool:
+        """Cancel an order"""
+        if not self.api_key or not self.api_secret:
+            logger.warning("No API keys configured, cannot cancel order")
+            return False
+        
+        url = f"{self.futures_base_url}/fapi/v1/order"
+        timestamp = int(datetime.now(timezone.utc).timestamp() * 1000)
+        
+        params = {
+            "symbol": symbol,
+            "orderId": order_id,
+            "timestamp": timestamp
+        }
+        
+        # Create signature
+        query_string = "&".join([f"{k}={v}" for k, v in params.items()])
+        signature = hmac.new(
+            self.api_secret.encode('utf-8'),
+            query_string.encode('utf-8'),
+            hashlib.sha256
+        ).hexdigest()
+        params['signature'] = signature
+        
+        headers = {"X-MBX-APIKEY": self.api_key}
+        proxy = self._get_next_proxy()
+        
+        try:
+            async with httpx.AsyncClient(proxy=proxy, timeout=10) as client:
+                response = await client.delete(url, params=params, headers=headers)
+                
+                if response.status_code == 200:
+                    logger.info(f"✅ Cancelled order {order_id} for {symbol}")
+                    return True
+                else:
+                    logger.error(f"Failed to cancel order: {response.status_code} - {response.text}")
+                    return False
+        except Exception as e:
+            logger.error(f"Error cancelling order: {e}")
+            return False
+    
     async def place_take_profit_market_order(
         self,
         symbol: str,
