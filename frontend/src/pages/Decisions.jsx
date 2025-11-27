@@ -164,11 +164,7 @@ const Decisions = () => {
                     
                     {/* Content */}
                     <div className="flex-1 w-full">
-                      <div className="hidden sm:block mb-2">
-                        {/* Desktop'ta boş - mobilde yukarıda */}
-                      </div>
-                        
-                        <p className="text-xs sm:text-sm text-gray-300 mb-2 sm:mb-3 leading-relaxed">{decision.reason}</p>
+                      <p className="text-xs sm:text-sm text-gray-300 mb-2 sm:mb-3 leading-relaxed">{decision.reason}</p>
                         
                         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
                           <div>
