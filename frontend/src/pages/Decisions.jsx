@@ -129,23 +129,24 @@ const Decisions = () => {
                 className="bg-black/40 border-white/10 backdrop-blur hover:border-cyan-500/30 transition-all"
                 data-testid={`decision-${idx}`}
               >
-                <CardContent className="p-5">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start gap-4 flex-1">
+                <CardContent className="p-3 sm:p-5">
+                  <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
+                    {/* Mobile: Icon + Header Row */}
+                    <div className="flex items-center gap-3 w-full sm:w-auto">
                       {/* Icon */}
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                      <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
                         isLong
                           ? "bg-emerald-500/20 text-emerald-400"
                           : "bg-gray-500/20 text-gray-400"
                       }`}>
-                        {isLong ? <TrendingUp className="w-6 h-6" /> : <X className="w-6 h-6" />}
+                        {isLong ? <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6" /> : <X className="w-5 h-5 sm:w-6 sm:h-6" />}
                       </div>
                       
-                      {/* Content */}
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <h3 className="text-lg font-bold text-white">{decisionLog.symbol}</h3>
-                          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                      {/* Mobile: Symbol + Badges */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="text-base sm:text-lg font-bold text-white">{decisionLog.symbol}</h3>
+                          <span className={`px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs font-semibold whitespace-nowrap ${
                             isLong
                               ? "bg-emerald-500/20 text-emerald-400"
                               : "bg-gray-500/20 text-gray-400"
@@ -153,11 +154,19 @@ const Decisions = () => {
                             {isLong ? "LONG" : "SKIP"}
                           </span>
                           {decisionLog.was_executed && (
-                            <span className="px-3 py-1 rounded-full text-xs font-semibold bg-cyan-500/20 text-cyan-400">
+                            <span className="px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs font-semibold bg-cyan-500/20 text-cyan-400 whitespace-nowrap">
                               İşlem Açıldı
                             </span>
                           )}
                         </div>
+                      </div>
+                    </div>
+                    
+                    {/* Content */}
+                    <div className="flex-1 w-full">
+                      <div className="hidden sm:block mb-2">
+                        {/* Desktop'ta boş - mobilde yukarıda */}
+                      </div>
                         
                         <p className="text-sm text-gray-300 mb-3">{decision.reason}</p>
                         
