@@ -48,12 +48,12 @@ logger = logging.getLogger(__name__)
 async def startup_event():
     global trade_engine, position_monitor
     trade_engine = TradeEngine(db)
-    position_monitor = PositionMonitor(db)
+    position_monitor = PositionMonitor(db, binance_service)
     
     # Auto-start trade engine and position monitor
     await trade_engine.start()
     await position_monitor.start()
-    logger.info("Application started, trade engine and position monitor initialized")
+    logger.info("Application started with WebSocket real-time price feeds")
 
 
 @app.on_event("shutdown")
