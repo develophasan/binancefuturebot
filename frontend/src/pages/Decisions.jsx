@@ -205,25 +205,27 @@ const Decisions = () => {
                           )}
                         </div>
                         
-                        <div className="flex items-center gap-2 mt-3 pt-3 border-t border-white/10">
-                          <Clock className="w-3 h-3 text-gray-500" />
-                          <span className="text-xs text-gray-500">
-                            {formatDate(decisionLog.created_at)}
-                          </span>
+                        {/* Timestamp ve Manuel Gir Butonu */}
+                        <div className="flex items-center justify-between gap-2 mt-3 pt-3 border-t border-white/10 flex-wrap">
+                          <div className="flex items-center gap-2">
+                            <Clock className="w-3 h-3 text-gray-500 flex-shrink-0" />
+                            <span className="text-[10px] sm:text-xs text-gray-500">
+                              {formatDate(decisionLog.created_at)}
+                            </span>
+                          </div>
+                          
+                          {/* Manuel Giriş Butonu */}
+                          <Button
+                            onClick={() => openManualTradeModal(decisionLog)}
+                            className="bg-cyan-500 hover:bg-cyan-600 text-white text-xs sm:text-sm h-8 sm:h-9 px-3 sm:px-4"
+                            size="sm"
+                          >
+                            <Play className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-2" />
+                            <span className="hidden sm:inline">Manuel Gir</span>
+                            <span className="sm:hidden ml-1">Gir</span>
+                          </Button>
                         </div>
                       </div>
-                    </div>
-                    
-                    {/* Manuel Giriş Butonu */}
-                    <div className="ml-4">
-                      <Button
-                        onClick={() => openManualTradeModal(decisionLog)}
-                        className="bg-cyan-500 hover:bg-cyan-600 text-white"
-                        size="sm"
-                      >
-                        <Play className="w-4 h-4 mr-2" />
-                        Manuel Gir
-                      </Button>
                     </div>
                   </div>
                 </CardContent>
