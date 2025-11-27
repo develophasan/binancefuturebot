@@ -121,7 +121,7 @@ class BinanceService:
                 "used_margin_usdt": 500.0
             }
         
-        url = f"{self.api_base_url}/fapi/v2/account"
+        url = f"{self.futures_base_url}/fapi/v2/account"
         timestamp = int(datetime.now(timezone.utc).timestamp() * 1000)
         
         params = {
