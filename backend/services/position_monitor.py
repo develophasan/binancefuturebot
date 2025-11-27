@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from typing import Dict, Any
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from services.binance_service import BinanceService
+from services.websocket_price_feed import get_price_feed
 from models import TradeStatus
 
 logger = logging.getLogger(__name__)
