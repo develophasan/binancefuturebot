@@ -221,7 +221,6 @@ const Decisions = () => {
                             <span className="sm:hidden ml-1">Gir</span>
                           </Button>
                         </div>
-                      </div>
                     </div>
                   </div>
                 </CardContent>
