@@ -45,6 +45,7 @@ class PositionMonitor:
     async def stop(self):
         """Stop position monitoring"""
         self.is_running = False
+        await self.price_feed.stop()
         logger.info("Position monitor stopped")
     
     async def _monitor_loop(self):
