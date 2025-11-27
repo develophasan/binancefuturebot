@@ -72,8 +72,49 @@ const Positions = () => {
     
     setClosingSingle(true);
     try {
+      // Show loading toast
+      const loadingToast = toast.loading("Pozisyon kapatılıyor...", {
+        description: "Market fiyatından satış emri yerleştiriliyor"
+      });
+      
       const response = await axios.post(`${API}/positions/${selectedPosition.id}/close`);
-      toast.success(response.data.message || "Pozisyon kapatıldı!");
+      
+      // Dismiss loading toast
+      toast.dismiss(loadingToast);
+      
+      // Show detailed success message
+      if (response.data.details) {
+        const details = response.data.details;
+        const isProfitable = details.realized_pnl >= 0;
+        
+        toast.success("Pozisyon Kapatıldı!", {
+          description: (
+            <div className="space-y-1 text-xs mt-2">
+              <div className="flex justify-between">
+                <span>Symbol:</span>
+                <span className="font-semibold">{details.symbol}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Giriş:</span>
+                <span>${formatPrice(details.entry_price)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Çıkış:</span>
+                <span>${formatPrice(details.exit_price)}</span>
+              </div>
+              <div className="flex justify-between border-t border-white/10 pt-1">
+                <span>PnL:</span>
+                <span className={isProfitable ? 'text-emerald-400 font-semibold' : 'text-red-400 font-semibold'}>
+                  ${details.realized_pnl.toFixed(2)} ({details.pnl_percent.toFixed(2)}%)
+                </span>
+              </div>
+            </div>
+          ),
+          duration: 6000
+        });
+      } else {
+        toast.success(response.data.message || "Pozisyon kapatıldı!");
+      }
       
       // Refresh positions
       await fetchPositions();
