@@ -73,11 +73,14 @@ class PositionMonitor:
             
             # Get unique symbols
             symbols = list(set([pos['symbol'] for pos in positions]))
-            logger.info(f"📊 Monitoring {len(positions)} positions: {symbols}")
             
-            # Fetch current prices for all symbols
-            await self._update_prices(symbols)
-            logger.info(f"💰 Current prices: {self.current_prices}")
+            # Subscribe to symbols in WebSocket (if not already subscribed)
+            for symbol in symbols:
+                self.price_feed.subscribe_symbol(symbol)
+            
+            # Prices are updated in real-time via WebSocket callback
+            # Just log current state
+            logger.debug(f"📊 Monitoring {len(positions)} positions with WebSocket: {symbols}")
             
             # Check each position
             for position in positions:
