@@ -34,9 +34,12 @@ class PositionMonitor:
             return
         
         self.is_running = True
-        logger.info("🔍 Position monitor started")
+        logger.info("🚀 Position monitor started with WebSocket real-time feeds")
         
-        # Run monitoring loop
+        # Start WebSocket price feed
+        await self.price_feed.start()
+        
+        # Run monitoring loop (lighter now, just checks TP/SL)
         asyncio.create_task(self._monitor_loop())
     
     async def stop(self):
