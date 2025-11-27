@@ -23,6 +23,8 @@ const Positions = () => {
   const [openPositions, setOpenPositions] = useState([]);
   const [closedPositions, setClosedPositions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [closeAllDialogOpen, setCloseAllDialogOpen] = useState(false);
+  const [closingAll, setClosingAll] = useState(false);
   
   const fetchPositions = async () => {
     try {
