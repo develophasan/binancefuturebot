@@ -1,8 +1,19 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { TrendingUp, Clock, DollarSign, Target, AlertTriangle } from "lucide-react";
+import { TrendingUp, Clock, DollarSign, Target, AlertTriangle, XCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { formatPrice, formatPnL, formatPercent } from "@/utils/formatPrice";
 
