@@ -198,7 +198,7 @@ async def get_position(position_id: str):
 
 @api_router.post("/positions/{position_id}/close")
 async def close_position(position_id: str):
-    """Close a specific position at market price"""
+    """Close a specific position at market price with order tracking"""
     try:
         # Get position
         position = await db.positions.find_one({
@@ -212,24 +212,32 @@ async def close_position(position_id: str):
         symbol = position['symbol']
         quantity = position['quantity']
         entry_price = position['entry_price']
+        leverage = position.get('leverage', 1)
         
-        # Get current price
+        logger.info(f"🔄 Starting close process for {symbol} position...")
+        
+        # Step 1: Get current market price
         ticker = await binance_service.get_ticker(symbol)
         if not ticker:
-            raise HTTPException(status_code=400, detail=f"{symbol} için fiyat alınamadı")
+            raise HTTPException(status_code=400, detail=f"{symbol} için anlık fiyat alınamadı")
         
-        exit_price = float(ticker['price'])
+        current_market_price = float(ticker['price'])
+        logger.info(f"📊 Current market price for {symbol}: ${current_market_price}")
         
-        # Cancel TP and SL orders
+        # Step 2: Cancel TP and SL orders
+        logger.info(f"🔄 Cancelling TP/SL orders for {symbol}...")
         try:
             if position.get('tp_order_id'):
                 await binance_service.cancel_order(symbol, position['tp_order_id'])
+                logger.info(f"✅ TP order cancelled")
             if position.get('sl_order_id'):
                 await binance_service.cancel_order(symbol, position['sl_order_id'])
+                logger.info(f"✅ SL order cancelled")
         except Exception as e:
-            logger.warning(f"Failed to cancel orders for {symbol}: {e}")
+            logger.warning(f"⚠️ Failed to cancel orders for {symbol}: {e}")
         
-        # Close position with market order
+        # Step 3: Place market SELL order
+        logger.info(f"🔄 Placing market SELL order for {symbol}: {quantity} units...")
         close_order = await binance_service.place_market_order(
             symbol=symbol,
             side="SELL",
@@ -237,14 +245,51 @@ async def close_position(position_id: str):
         )
         
         if not close_order:
-            raise HTTPException(status_code=500, detail="Pozisyon kapatılamadı")
+            raise HTTPException(status_code=500, detail="Market SELL order yerleştirilemedi")
         
-        # Calculate realized PnL
+        order_id = str(close_order.get('orderId', ''))
+        logger.info(f"✅ Market order placed. Order ID: {order_id}")
+        
+        # Step 4: Wait and get actual execution details
+        logger.info(f"⏳ Waiting for order execution...")
+        await asyncio.sleep(2)  # Wait for order to be filled
+        
+        # Get order status and actual fill price
+        order_details = await binance_service.get_order_status(symbol, order_id)
+        
+        if order_details:
+            order_status = order_details.get('status')
+            avg_price = float(order_details.get('avgPrice', 0))
+            executed_qty = float(order_details.get('executedQty', 0))
+            
+            logger.info(f"📋 Order Status: {order_status}")
+            logger.info(f"💰 Actual Fill Price: ${avg_price}")
+            logger.info(f"📦 Executed Quantity: {executed_qty}")
+            
+            # Use actual execution price
+            if avg_price > 0:
+                exit_price = avg_price
+            else:
+                # Fallback to market price if avg_price not available
+                exit_price = current_market_price
+                logger.warning(f"⚠️ Using market price as fallback: ${exit_price}")
+        else:
+            # Fallback to market price if order details not available
+            exit_price = current_market_price
+            logger.warning(f"⚠️ Could not get order details, using market price: ${exit_price}")
+        
+        # Step 5: Calculate realized PnL with ACTUAL execution price
         price_diff = exit_price - entry_price
-        leverage = position.get('leverage', 1)
         realized_pnl = (price_diff / entry_price) * position['position_size_usdt'] * leverage
         
-        # Update position in database
+        pnl_percent = (price_diff / entry_price) * 100
+        
+        logger.info(f"💵 Entry Price: ${entry_price}")
+        logger.info(f"💵 Exit Price: ${exit_price}")
+        logger.info(f"📊 Price Difference: ${price_diff} ({pnl_percent:.2f}%)")
+        logger.info(f"💰 Realized PnL: ${realized_pnl:.2f}")
+        
+        # Step 6: Update position in database
         await db.positions.update_one(
             {"id": position_id},
             {
@@ -252,24 +297,34 @@ async def close_position(position_id: str):
                     "status": TradeStatus.CLOSED.value,
                     "exit_price": exit_price,
                     "realized_pnl_usdt": realized_pnl,
-                    "closed_at": datetime.now(timezone.utc).isoformat()
+                    "closed_at": datetime.now(timezone.utc).isoformat(),
+                    "close_order_id": order_id
                 }
             }
         )
         
-        logger.info(f"✅ Closed {symbol}: PnL ${realized_pnl:.2f}")
+        logger.info(f"✅ Position {symbol} closed successfully!")
         
         return {
             "success": True,
             "message": f"{symbol} pozisyonu başarıyla kapatıldı",
-            "realized_pnl": realized_pnl,
-            "exit_price": exit_price
+            "details": {
+                "symbol": symbol,
+                "entry_price": entry_price,
+                "exit_price": exit_price,
+                "market_price": current_market_price,
+                "quantity": quantity,
+                "realized_pnl": realized_pnl,
+                "pnl_percent": pnl_percent,
+                "order_id": order_id,
+                "order_status": order_details.get('status') if order_details else "UNKNOWN"
+            }
         }
         
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error closing position {position_id}: {e}", exc_info=True)
+        logger.error(f"❌ Error closing position {position_id}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 
