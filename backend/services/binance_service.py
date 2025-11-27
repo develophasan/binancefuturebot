@@ -44,7 +44,7 @@ class BinanceService:
             logger.warning("⚠️ No proxies configured, direct connection will be attempted")
         
         if self.has_credentials:
-            logger.info(f"✅ Binance service initialized with Testnet API credentials")
+            logger.info("✅ Binance service initialized with Testnet API credentials")
         else:
             logger.warning("⚠️ No API credentials found, using public data only")
         
