@@ -223,6 +223,21 @@ const Positions = () => {
               Miktar: {formatPrice(position.quantity)}
             </div>
           </div>
+          
+          {/* Kapat butonu - sadece açık pozisyonlar için */}
+          {isOpen && (
+            <div className="pt-3 border-t border-white/10 mt-3">
+              <Button
+                onClick={() => openCloseSingleDialog(position)}
+                variant="outline"
+                size="sm"
+                className="w-full border-red-500/50 text-red-400 hover:bg-red-500/10 hover:text-red-300"
+              >
+                <XCircle className="w-4 h-4 mr-2" />
+                Pozisyonu Kapat
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
     );
