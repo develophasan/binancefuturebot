@@ -552,8 +552,124 @@ async def get_ai_decisions(limit: int = 50):
 @api_router.get("/market/top-gainers", response_model=List[TopGainer])
 async def get_top_gainers(limit: int = 10):
     """Get top gaining symbols"""
-    gainers = await binance_service.get_top_gainers(limit=limit)
-    return gainers
+    try:
+        gainers = await binance_service.get_top_gainers(limit=limit)
+        return gainers
+    except Exception as e:
+        logger.error(f"Error fetching top gainers: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.get("/market/all-symbols")
+async def get_all_futures_symbols():
+    """Get all available futures trading symbols"""
+    try:
+        symbols = await binance_service.get_top_gainers(limit=200)  # Get many symbols
+        # Return unique symbols sorted
+        symbol_list = sorted(list(set([s['symbol'] for s in symbols])))
+        return symbol_list
+    except Exception as e:
+        logger.error(f"Error fetching symbols: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.post("/market/analyze-symbol")
+async def analyze_symbol(symbol: str):
+    """Analyze a specific symbol with AI"""
+    try:
+        logger.info(f"🔍 Analyzing {symbol}...")
+        
+        # Fetch market data
+        candles = await binance_service.get_candles(symbol, interval="5m", limit=100)
+        if not candles or len(candles) < 50:
+            raise HTTPException(status_code=400, detail=f"{symbol} için yeterli veri yok")
+        
+        # Calculate indicators
+        from services.indicators import calculate_indicators
+        indicators = calculate_indicators(candles)
+        if not indicators:
+            raise HTTPException(status_code=400, detail="Göstergeler hesaplanamadı")
+        
+        # Get account info
+        account = await binance_service.get_account_balance()
+        
+        # Get funding rate and OI
+        funding_rate = await binance_service.get_funding_rate(symbol)
+        oi_data = await binance_service.get_open_interest(symbol)
+        
+        # Get settings for user params
+        settings = await db.settings.find_one({"user_id": "default_user"}, {"_id": 0})
+        if settings:
+            if isinstance(settings.get('created_at'), str):
+                settings['created_at'] = datetime.fromisoformat(settings['created_at'])
+            if isinstance(settings.get('updated_at'), str):
+                settings['updated_at'] = datetime.fromisoformat(settings['updated_at'])
+        
+        from models import UserSettings
+        user_settings = UserSettings(**settings) if settings else UserSettings()
+        
+        # Build decision input
+        decision_input = {
+            "symbol": symbol,
+            "timeframe": "5m",
+            "candles": candles[-10:],
+            "indicators": indicators,
+            "account": {
+                "equity_usdt": account['total_equity_usdt'],
+                "free_margin_usdt": account['available_balance_usdt'],
+            },
+            "user_params": {
+                "position_size_mode": user_settings.position_size_mode.value,
+                "position_size_value": user_settings.position_size_value,
+                "max_leverage": user_settings.max_leverage,
+                "min_leverage": user_settings.min_leverage,
+                "target_profit_percent": user_settings.target_profit_percent,
+                "stop_loss_percent": user_settings.stop_loss_percent,
+            }
+        }
+        
+        decision_input["indicators"]["funding_rate"] = funding_rate
+        decision_input["indicators"]["oi_24h_change_percent"] = oi_data['change_24h_percent']
+        
+        # Get AI decision
+        from services.ai_service import AIDecisionService
+        ai_service = AIDecisionService()
+        decision = await ai_service.make_decision(decision_input)
+        
+        # Log to database
+        from models import AIDecisionLog
+        log = AIDecisionLog(
+            symbol=symbol,
+            timeframe="5m",
+            decision=decision,
+            input_data=decision_input,
+            was_executed=False
+        )
+        
+        log_dict = log.model_dump()
+        log_dict['created_at'] = log_dict['created_at'].isoformat()
+        await db.ai_decisions.insert_one(log_dict)
+        
+        logger.info(f"✅ Analysis complete for {symbol}: {decision.action.value}")
+        
+        return {
+            "symbol": symbol,
+            "decision": decision.model_dump(),
+            "current_price": candles[-1]['close'],
+            "indicators": {
+                "rsi": indicators['rsi'],
+                "ema_trend": indicators['ema_trend'],
+                "volume_ma_ratio": indicators['volume_ma_ratio'],
+                "funding_rate": funding_rate,
+                "oi_change": oi_data['change_24h_percent']
+            }
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error analyzing {symbol}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @api_router.get("/market/prices")
