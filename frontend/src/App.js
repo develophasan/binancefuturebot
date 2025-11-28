@@ -5,6 +5,7 @@ import Settings from "@/pages/Settings";
 import Positions from "@/pages/Positions";
 import Decisions from "@/pages/Decisions";
 import History from "@/pages/History";
+import Analyze from "@/pages/Analyze";
 import Layout from "@/components/Layout";
 
 function App() {
