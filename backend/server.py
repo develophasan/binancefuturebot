@@ -563,12 +563,11 @@ async def get_top_gainers(limit: int = 10):
 
 @api_router.get("/market/all-symbols")
 async def get_all_futures_symbols():
-    """Get all available futures trading symbols"""
+    """Get ALL available USDT perpetual futures trading symbols"""
     try:
-        symbols = await binance_service.get_top_gainers(limit=200)  # Get many symbols
-        # Return unique symbols sorted
-        symbol_list = sorted(list(set([s['symbol'] for s in symbols])))
-        return symbol_list
+        symbols = await binance_service.get_all_futures_symbols()
+        logger.info(f"📊 Returning {len(symbols)} total USDT futures symbols")
+        return symbols
     except Exception as e:
         logger.error(f"Error fetching symbols: {e}")
         raise HTTPException(status_code=500, detail=str(e))
