@@ -574,7 +574,7 @@ async def get_all_futures_symbols():
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@api_router.post("/market/analyze-symbol")
+@api_router.get("/market/analyze-symbol")
 async def analyze_symbol(symbol: str):
     """Analyze a specific symbol with AI"""
     try:
