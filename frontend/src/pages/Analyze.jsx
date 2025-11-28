@@ -36,7 +36,8 @@ const Analyze = () => {
     try {
       const response = await axios.get(`${API}/market/all-symbols`);
       setSymbols(response.data);
-      setFilteredSymbols(response.data.slice(0, 50));
+      setFilteredSymbols(response.data.slice(0, 100));
+      toast.success(`${response.data.length} coin yüklendi!`);
     } catch (error) {
       console.error("Error fetching symbols:", error);
       toast.error("Coin listesi yüklenemedi");
