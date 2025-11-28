@@ -17,6 +17,7 @@ function App() {
             <Route index element={<Dashboard />} />
             <Route path="positions" element={<Positions />} />
             <Route path="history" element={<History />} />
+            <Route path="analyze" element={<Analyze />} />
             <Route path="decisions" element={<Decisions />} />
             <Route path="settings" element={<Settings />} />
           </Route>
