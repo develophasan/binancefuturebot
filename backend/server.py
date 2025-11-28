@@ -230,10 +230,10 @@ async def close_position(position_id: str):
         try:
             if position.get('tp_order_id'):
                 await binance_service.cancel_order(symbol, position['tp_order_id'])
-                logger.info(f"✅ TP order cancelled")
+                logger.info("✅ TP order cancelled")
             if position.get('sl_order_id'):
                 await binance_service.cancel_order(symbol, position['sl_order_id'])
-                logger.info(f"✅ SL order cancelled")
+                logger.info("✅ SL order cancelled")
         except Exception as e:
             logger.warning(f"⚠️ Failed to cancel orders for {symbol}: {e}")
         
@@ -252,7 +252,7 @@ async def close_position(position_id: str):
         logger.info(f"✅ Market order placed. Order ID: {order_id}")
         
         # Step 4: Wait and get actual execution details
-        logger.info(f"⏳ Waiting for order execution...")
+        logger.info("⏳ Waiting for order execution...")
         await asyncio.sleep(2)  # Wait for order to be filled
         
         # Get order status and actual fill price
