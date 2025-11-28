@@ -28,7 +28,7 @@ const Analyze = () => {
       );
       setFilteredSymbols(filtered);
     } else {
-      setFilteredSymbols(symbols.slice(0, 50)); // İlk 50 coin
+      setFilteredSymbols(symbols.slice(0, 100)); // İlk 100 coin
     }
   }, [searchQuery, symbols]);
 
