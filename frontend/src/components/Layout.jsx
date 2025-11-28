@@ -8,6 +8,7 @@ const Layout = () => {
     { path: "/", label: "Dashboard", icon: Activity },
     { path: "/positions", label: "Pozisyonlar", icon: TrendingUp },
     { path: "/history", label: "Geçmiş", icon: History },
+    { path: "/analyze", label: "Analiz", icon: Search },
     { path: "/decisions", label: "AI Kararları", icon: Brain },
     { path: "/settings", label: "Ayarlar", icon: SettingsIcon },
   ];
