@@ -204,6 +204,37 @@ class BinanceService:
             logger.error(f"Error fetching open interest for {symbol}: {e}")
             return {"open_interest": 0.0, "change_24h_percent": 0.0}
     
+    async def get_all_futures_symbols(self) -> List[str]:
+        """Get ALL futures trading pairs from exchange info"""
+        url = f"{self.futures_base_url}/fapi/v1/exchangeInfo"
+        proxy = self._get_next_proxy()
+        
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(
+                    url,
+                    proxy=proxy,
+                    timeout=aiohttp.ClientTimeout(total=10)
+                ) as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        # Filter for USDT perpetual contracts that are trading
+                        symbols = []
+                        for symbol_info in data.get('symbols', []):
+                            if (symbol_info.get('symbol', '').endswith('USDT') and 
+                                symbol_info.get('status') == 'TRADING' and
+                                symbol_info.get('contractType') == 'PERPETUAL'):
+                                symbols.append(symbol_info['symbol'])
+                        
+                        logger.info(f"✅ Fetched {len(symbols)} USDT perpetual futures symbols")
+                        return sorted(symbols)
+                    else:
+                        logger.error(f"Failed to get exchange info: {response.status}")
+                        return []
+        except Exception as e:
+            logger.error(f"Error getting all symbols: {e}")
+            return []
+    
     async def get_ticker(self, symbol: str) -> Optional[Dict[str, Any]]:
         """Get current price for a symbol"""
         url = f"{self.futures_base_url}/fapi/v1/ticker/price"
