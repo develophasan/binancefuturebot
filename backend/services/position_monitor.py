@@ -2,7 +2,7 @@ import asyncio
 import logging
 from datetime import datetime, timezone
 from typing import Dict, Any
-from motor.motor_asyncio import AsyncIOMotorDatabase
+from database import AsyncSQLiteDatabase
 from services.binance_service import BinanceService
 from services.websocket_price_feed import get_price_feed
 from models import TradeStatus
@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 class PositionMonitor:
     """Monitor open positions and check TP/SL conditions"""
     
-    def __init__(self, db: AsyncIOMotorDatabase, binance_service: BinanceService):
+    def __init__(self, db: AsyncSQLiteDatabase, binance_service: BinanceService):
         self.db = db
         self.binance = binance_service
         self.current_prices: Dict[str, float] = {}

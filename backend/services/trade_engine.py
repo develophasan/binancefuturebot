@@ -1,7 +1,7 @@
 import logging
 from typing import Dict, Any, Optional, List
 from datetime import datetime, timezone, timedelta
-from motor.motor_asyncio import AsyncIOMotorDatabase
+from database import AsyncSQLiteDatabase
 from services.binance_service import BinanceService
 from services.ai_service import AIDecisionService
 from services.indicators import calculate_indicators
@@ -21,7 +21,7 @@ POPULAR_COINS = [
 
 
 class TradeEngine:
-    def __init__(self, db: AsyncIOMotorDatabase):
+    def __init__(self, db: AsyncSQLiteDatabase):
         self.db = db
         self.binance = BinanceService(testnet=True)
         self.ai_service = AIDecisionService()
@@ -66,14 +66,12 @@ class TradeEngine:
                 # Get dynamic symbol list (Popular + Top Gainers)
                 symbol_list = await self._get_symbol_list(settings)
                 
-                # Process each symbol
+                # Process each symbol concurrently
+                tasks = []
                 for symbol in symbol_list:
-                    try:
-                        await self._process_symbol(symbol, settings)
-                    except Exception as e:
-                        logger.error(f"Error processing {symbol}: {e}")
-                    
-                    await asyncio.sleep(2)  # Rate limiting
+                    tasks.append(self._process_symbol_safe(symbol, settings))
+                
+                await asyncio.gather(*tasks)
                 
                 # Update last signal time
                 self.last_signal_time = datetime.now(timezone.utc)
@@ -84,6 +82,15 @@ class TradeEngine:
             except Exception as e:
                 logger.error(f"Error in main loop: {e}", exc_info=True)
                 await asyncio.sleep(60)
+                
+    async def _process_symbol_safe(self, symbol: str, settings: UserSettings):
+        """Safe wrapper for processing a symbol to block exceptions from stopping gather"""
+        try:
+            # Stagger startup slightly to avoid rate limits
+            await asyncio.sleep(0.5)
+            await self._process_symbol(symbol, settings)
+        except Exception as e:
+            logger.error(f"Error processing {symbol}: {e}")
     
     async def _process_symbol(self, symbol: str, settings: UserSettings):
         """Process trading signal for a symbol"""

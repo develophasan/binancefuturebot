@@ -1,7 +1,7 @@
 from fastapi import FastAPI, APIRouter, HTTPException
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
-from motor.motor_asyncio import AsyncIOMotorClient
+from database import sqlite_db as db, init_db
 import os
 import logging
 import asyncio
@@ -20,11 +20,6 @@ from services.position_monitor import PositionMonitor
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
-
-# MongoDB connection
-mongo_url = os.environ['MONGO_URL']
-client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
 
 # Create the main app
 app = FastAPI(title="Binance Futures AI Trading Bot")
@@ -48,6 +43,7 @@ logger = logging.getLogger(__name__)
 @app.on_event("startup")
 async def startup_event():
     global trade_engine, position_monitor
+    await init_db()
     trade_engine = TradeEngine(db)
     position_monitor = PositionMonitor(db, binance_service)
     
@@ -63,7 +59,6 @@ async def shutdown_event():
         await trade_engine.stop()
     if position_monitor:
         await position_monitor.stop()
-    client.close()
     logger.info("Application shutdown")
 
 
@@ -691,3 +686,18 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+if __name__ == "__main__":
+    import uvicorn
+    import socket
+    
+    # Try to find an available port starting from 8000
+    port = 8000
+    while True:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            if s.connect_ex(('127.0.0.1', port)) != 0:
+                break
+            port += 1
+            
+    logger.info(f"Starting embedded uvicorn server on port {port}")
+    uvicorn.run(app, host="127.0.0.1", port=port)
